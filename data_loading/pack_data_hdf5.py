@@ -7,6 +7,7 @@ import gzip
 import struct
 
 import numpy as np
+import h5py
 
 
 def mnist(root_path):
@@ -59,9 +60,28 @@ def visdac_2017():
     pass
 
 
-def pack_dataset():
-    pass
+def pack_dataset(output_path, dataset):
+    output_path = Path(output_path)
+    if output_path.exists():
+        renamed_path = f"{output_path.stem}_backup{output_path.suffix}"
+        print(f"{output_path} already exists. Renaming to {renamed_path}.")
+        output_path.rename(renamed_path)
 
+    file = h5py.File(output_path, "w")
+
+    for split_name in ["tr", "te"]:
+        image_name = f"X_{split_name}"
+        label_name = f"y_{split_name}"
+
+        images = dataset[image_name]
+        labels = dataset[label_name]
+
+        file.create_dataset(image_name, np.shape(images), h5py.h5t.STD_U8BE,
+                            data=images)
+        file.create_dataset(label_name, np.shape(labels), h5py.h5t.STD_U8BE,
+                            data=labels)
+
+    file.close()
 
 def main():
     # argparsing for which datasets you'd like to pack
