@@ -1,5 +1,11 @@
-"""Standalone script for packing downloaded datasets into HDF5
-container."""
+"""Script for packing downloaded datasets into HDF5 container.
+
+Arguments
+---------
+datasets : str or list of str
+    Names of datasets to try to pack into HDF5 containers. Must be
+    present in the following list: MNIST, MNIST-M, USPS, SVHN
+"""
 
 import argparse
 import os
@@ -13,6 +19,27 @@ import cv2
 
 
 def mnist(root_path):
+    """Load serialized MNIST labels and images.
+
+    Parameters
+    ----------
+    root_path : str or Path object
+        Path to root directory containing image/label archives.
+
+    Returns
+    -------
+    dataset : dict of ndarrays
+        Dictionary containing four items: training labels `y_tr`,
+        training images `X_tr`, testing labels `y_te`, and testing
+        images `X_te`.
+
+    Notes
+    -----
+    MNIST dataset must be downloaded manually. A mirror can be found at
+    the following location as of 2020-03-31:
+
+    http://yann.lecun.com/exdb/mnist/
+    """
     # Set up paths for required directory and files
     mnist_path = Path(root_path)
     required_files = {"y_tr": "train-labels-idx1-ubyte.gz",
@@ -43,6 +70,27 @@ def mnist(root_path):
 
 
 def mnist_m(root_path):
+    """Load serialized MNIST-M labels and images.
+
+    Parameters
+    ----------
+    root_path : str or Path object
+        Path to root directory containing image/label archives.
+
+    Returns
+    -------
+    dataset : dict of ndarrays
+        Dictionary containing four items: training labels `y_tr`,
+        training images `X_tr`, testing labels `y_te`, and testing
+        images `X_te`.
+
+    Notes
+    -----
+    MNIST-M dataset must be downloaded manually. A mirror can be found
+    at the following location as of 2020-03-31:
+
+    https://github.com/fungtion/DANN
+    """
     # Set up paths for required directory and files
     mnist_m_path = Path(root_path)
     required_files = {"y_tr": "mnist_m_train_labels.txt",
@@ -89,6 +137,17 @@ def visdac_2017():
 
 
 def pack_dataset(output_path, dataset):
+    """Pack image dataset into HDF5 container.
+
+    Parameters
+    ----------
+    output_path : str or Path object
+        Path representing HDF5 file to pack dataset into.
+    dataset : dict of ndarrays
+        Dictionary containing four items: training labels `y_tr`,
+        training images `X_tr`, testing labels `y_te`, and testing
+        images `X_te`.
+    """
     output_path = Path(output_path)
     if output_path.exists():
         renamed_path = f"{output_path.stem}_backup{output_path.suffix}"
