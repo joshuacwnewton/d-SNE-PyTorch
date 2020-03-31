@@ -118,14 +118,18 @@ def main(requested_datasets):
                      "sn": svhn, "svhn": svhn}
 
     for dataset in requested_datasets:
-        func = dataset_funcs[dataset]
+        try:
+            func = dataset_funcs[dataset]
 
-        # Use function name as convention for directory/filenames
-        dataset_path = Path("data")/func.__name__  # e.g. "data/mnist"
-        output_filename = f"{func.__name__ }.h5"   # e.g. "mnist.h5"
+            # Use function name as convention for directory/filenames
+            dataset_path = Path("data") / func.__name__  # e.g. "data/mnist"
+            output_filename = f"{func.__name__}.h5"  # e.g. "mnist.h5"
 
-        dataset = func(dataset_path)
-        pack_dataset(output_filename, dataset)
+            dataset = func(dataset_path)
+            pack_dataset(output_filename, dataset)
+
+        except KeyError:
+            print(f'"{dataset}" does not map to valid dataset. Skipping it.')
 
 
 if __name__ == "__main__":
