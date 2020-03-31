@@ -6,8 +6,9 @@ from pathlib import Path
 import gzip
 import struct
 
-import numpy as np
 import h5py
+import numpy as np
+import cv2
 
 
 def mnist(root_path):
@@ -41,7 +42,33 @@ def mnist(root_path):
 
 
 def mnist_m(root_path):
-    pass
+    # Set up paths for required directory and files
+    mnist_m_path = Path(root_path)
+    required_files = {"y_tr": "mnist_m_train_labels.txt",
+                      "X_tr": "mnist_m_train",
+                      "y_te": "mnist_m_test_labels.txt",
+                      "X_te": "mnist_m_test"}
+
+    # Check to see if required files exist
+    assert mnist_m_path.exists()
+    for file_path in required_files.values():
+        assert (mnist_m_path / file_path).exists()
+
+    # Load images and labels into dataset dictionary
+    dataset = {}
+    for name, file_path in required_files.items():
+        if name.startswith('y'):
+            with open(root_path/file_path, 'r') as f:
+                paths, labels = zip(*[line.split() for line in f.readlines()])
+                dataset[name] = np.array(labels, dtype=np.uint8)
+
+        elif name.startswith("X"):
+            images = [cv2.cvtColor(cv2.imread(str(root_path/file_path/path)),
+                                   cv2.COLOR_BGR2RGB)
+                      for path in paths]
+            dataset[name] = np.array(images, dtype=np.uint8)
+
+    return dataset
 
 
 def svhn():
