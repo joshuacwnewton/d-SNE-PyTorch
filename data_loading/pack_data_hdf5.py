@@ -14,29 +14,29 @@ import cv2
 def mnist(root_path):
     # Set up paths for required directory and files
     mnist_path = Path(root_path)
-    required_files = {"X_tr": "train-images-idx3-ubyte.gz",
-                      "y_tr": "train-labels-idx1-ubyte.gz",
-                      "X_te": "t10k-images-idx3-ubyte.gz",
-                      "y_te": "t10k-labels-idx1-ubyte.gz"}
+    required_files = {"y_tr": "train-labels-idx1-ubyte.gz",
+                      "X_tr": "train-images-idx3-ubyte.gz",
+                      "y_te": "t10k-labels-idx1-ubyte.gz",
+                      "X_te": "t10k-images-idx3-ubyte.gz"}
 
     # Check to see if required files exist
     assert mnist_path.exists()
     for file_path in required_files.values():
         assert (mnist_path / file_path).exists()
 
-    # Load images and labels into dataset dictionary
+    # Load labels and images into dataset dictionary
     dataset = {}
     for name, file_path in required_files.items():
         with gzip.open(mnist_path / file_path, 'rb') as f:
-            if name.startswith("X"):
-                magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
-                data = np.frombuffer(f.read(), dtype=np.uint8)
-                dataset[name] = data.reshape(-1, rows, cols)
-
-            elif name.startswith("y"):
+            if name.startswith("y"):
                 magic, num = struct.unpack(">II", f.read(8))
                 data = np.frombuffer(f.read(), dtype=np.uint8)
                 dataset[name] = data
+
+            elif name.startswith("X"):
+                magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
+                data = np.frombuffer(f.read(), dtype=np.uint8)
+                dataset[name] = data.reshape(-1, rows, cols)
 
     return dataset
 
@@ -54,7 +54,7 @@ def mnist_m(root_path):
     for file_path in required_files.values():
         assert (mnist_m_path / file_path).exists()
 
-    # Load images and labels into dataset dictionary
+    # Load labels and images into dataset dictionary
     dataset = {}
     for name, file_path in required_files.items():
         if name.startswith('y'):
