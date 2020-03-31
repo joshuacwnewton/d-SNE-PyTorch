@@ -124,7 +124,7 @@ def main(requested_datasets):
 
     for dataset in requested_datasets:
         try:
-            func = dataset_funcs[dataset]
+            func = dataset_funcs[dataset.lower()]
 
             # Use function name as convention for directory/filenames
             dataset_path = Path("data") / func.__name__  # e.g. "data/mnist"
