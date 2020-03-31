@@ -4,11 +4,12 @@ container."""
 
 
 
-def mnist(root_path="./data/mnist/"):
+
+def mnist(root_path):
     pass
 
 
-def mnistm(root_path="./data/mnist-m/"):
+def mnistm(root_path):
     pass
 
 
