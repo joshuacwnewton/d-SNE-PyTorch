@@ -9,7 +9,7 @@ def mnist(root_path):
     pass
 
 
-def mnistm(root_path):
+def mnist_m(root_path):
     pass
 
 
