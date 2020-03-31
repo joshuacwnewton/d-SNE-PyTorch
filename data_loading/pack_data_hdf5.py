@@ -12,11 +12,11 @@ def mnistm(root_path="./data/mnist-m/"):
     pass
 
 
-def usps():
+def svhn():
     pass
 
 
-def svhn():
+def usps():
     pass
 
 
