@@ -1,7 +1,7 @@
 """Standalone script for packing downloaded datasets into HDF5
 container."""
 
-
+import argparse
 from pathlib import Path
 import gzip
 import struct
@@ -83,6 +83,27 @@ def pack_dataset(output_path, dataset):
 
     file.close()
 
-def main():
-    # argparsing for which datasets you'd like to pack
-    pass
+
+def main(requested_datasets):
+    dataset_funcs = {"mt": mnist, "mnist": mnist,
+                     "mm": mnist_m, "mnistm": mnist_m, "mnist-m": mnist_m,
+                     "us": usps, "usps": usps,
+                     "sn": svhn, "svhn": svhn}
+
+    for dataset in requested_datasets:
+        func = dataset_funcs[dataset]
+
+        # Use function name as convention for directory/filenames
+        dataset_path = Path("data")/func.__name__  # e.g. "data/mnist"
+        output_filename = f"{func.__name__ }.h5"   # e.g. "mnist.h5"
+
+        dataset = func(dataset_path)
+        pack_dataset(output_filename, dataset)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("datasets", nargs="+")
+    args = parser.parse_args()
+
+    main(args.datasets)
