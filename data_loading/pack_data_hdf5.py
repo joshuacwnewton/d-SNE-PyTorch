@@ -2,27 +2,32 @@
 container."""
 
 
-def pack_mnist(mnist_path="./MNIST/"):
+
+def mnist(mnist_path="./data/MNIST/"):
     pass
 
 
-def pack_mnistm(mnistm_path="./MNIST-M/"):
+def mnistm(mnistm_path="./data/MNIST-M/"):
     pass
 
 
-def pack_usps():
+def usps():
     pass
 
 
-def pack_svhn():
+def svhn():
     pass
 
 
-def pack_office31():
+def office31():
     pass
 
 
-def pack_visdac_2017():
+def visdac_2017():
+    pass
+
+
+def pack_dataset():
     pass
 
 
