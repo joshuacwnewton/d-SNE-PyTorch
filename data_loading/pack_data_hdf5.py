@@ -34,7 +34,7 @@ def mnist(root_path):
 
             elif name.startswith("y"):
                 magic, num = struct.unpack(">II", f.read(8))
-                data = np.frombuffer(f.read(), dtype=np.int8)
+                data = np.frombuffer(f.read(), dtype=np.uint8)
                 dataset[name] = data
 
     return dataset
