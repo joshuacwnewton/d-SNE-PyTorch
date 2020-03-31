@@ -2,6 +2,7 @@
 container."""
 
 import argparse
+import os
 from pathlib import Path
 import gzip
 import struct
@@ -112,6 +113,10 @@ def pack_dataset(output_path, dataset):
 
 
 def main(requested_datasets):
+    # Ensure that current working directory is where pack_data_hdf5.py is
+    os.chdir(Path(os.path.realpath(__file__)).parent)
+
+    # Mapping from str arguments to function names
     dataset_funcs = {"mt": mnist, "mnist": mnist,
                      "mm": mnist_m, "mnistm": mnist_m, "mnist-m": mnist_m,
                      "us": usps, "usps": usps,
