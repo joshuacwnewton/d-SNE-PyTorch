@@ -186,11 +186,11 @@ def main(requested_datasets):
             func = dataset_funcs[dataset.lower()]
 
             # Use function name as convention for directory/filenames
-            dataset_path = Path("data") / func.__name__  # e.g. "data/mnist"
-            output_filename = f"{func.__name__}.h5"  # e.g. "mnist.h5"
+            dataset_path = Path("data") / func.__name__
+            output_path = Path("data") / f"{func.__name__}.h5"
 
             dataset = func(dataset_path)
-            pack_dataset(output_filename, dataset)
+            pack_dataset(output_path, dataset)
 
         except KeyError:
             print(f'"{dataset}" does not map to valid dataset. Skipping it.')
