@@ -25,9 +25,9 @@ class PairDataset(data.Dataset):
     Methods
     -------
     __len__
-        Reflects amount of available pairs of indices.
+        Reflect amount of available pairs of indices.
     __getitem__
-        Gets pair of source and target images/labels.
+        Get pair of source and target images/labels.
 
     Notes
     -----
@@ -136,6 +136,7 @@ class PairDataset(data.Dataset):
         return intra_pair_idxs, inter_pair_idxs
 
     def __len__(self):
+        """Reflect amount of available pairs of indices."""
         return len(self.full_idxs)
 
     def __getitem__(self, idx):
