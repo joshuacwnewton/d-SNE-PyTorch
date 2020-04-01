@@ -16,31 +16,20 @@ def mnist_to_mnistm(mnist_path="./data/mnist.h5",
     #       -TARGET_NUM
     #       -SAMPLE_RATIO
 
-    # load serialized mnist images / labels
-    mnist = mnist_path
-    # Sample form: {
-    #     "X_tr": None,
-    #     "y_tr": None,
-    #     "X_te": None,
-    #     "y_te": None
-    # }
+    # Pass loaded datasets into Dataset objects
+    train_dataset = PairDataset(mnist_path, "X_tr", "y_tr",
+                                mnist_m_path, "X_tr", "y_tr")
 
-    # load serialized mnist-m images / labels
-    mnistm = mnistm_path
-    # Sample form: {
-    #     "X_tr": None,
-    #     "y_tr": None,
-    #     "X_te": None,
-    #     "y_te": None
-    # }
+    # TODO: Implement SingleDataset
+    # test_dataset = SingleDataset(data=mnist_m_path)
 
-    # pass loaded datasets into Dataset objects
-    train_dataset = PairDataset(data_src=mnist, data_tgt=mnistm)
-    test_dataset = SingleDataset(data=mnistm)
+    # Pass Dataset objects to DataLoader objects
+    train_dataloader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+    # test_dataloader = DataLoader(test_dataset)
 
-    # pass Dataset objects to DataLoader objects
-    train_dataloader = DataLoader(train_dataset)
-    test_dataloader = DataLoader(test_dataset)
+    return train_dataloader  #, test_dataloader
 
-    # return training and testing dataloaders
-    return train_dataloader, test_dataloader
+
+if __name__ == "__main__":
+    # Temporary call to test PairDataset creation
+    train_dataloader = mnist_to_mnistm()
