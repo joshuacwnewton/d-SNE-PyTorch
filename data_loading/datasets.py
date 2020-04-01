@@ -138,8 +138,17 @@ class PairDataset(data.Dataset):
     def __len__(self):
         return len(self.full_idxs)
 
-    def __getitem__(self, item):
-        pass
+    def __getitem__(self, idx):
+        """Get pair of source and target images/labels."""
+        src_idx, tgt_idx = self.full_idxs[idx]
+
+        X_src, y_src = self.src_X[src_idx], self.src_y[src_idx]
+        X_tgt, y_tgt = self.tgt_X[tgt_idx], self.tgt_y[tgt_idx]
+
+        for transform in self.transforms:
+            X_src, X_tgt = transform(X_src), transform(X_tgt)
+
+        return X_src, y_src, X_tgt, y_tgt
 
 
 class SingleDataset(data.Dataset):
