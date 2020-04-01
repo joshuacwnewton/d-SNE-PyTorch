@@ -85,6 +85,10 @@ class PairDataset(data.Dataset):
             self.intra_idxs, self.inter_idxs = self._create_pairs(sample_ratio)
             self.full_idxs = np.concatenate((self.intra_idxs, self.inter_idxs))
 
+            # Sort as to allow shuffling to be performed by the DataLoader
+            self.full_idxs = self.full_idxs[np.lexsort((self.full_idxs[:, 1],
+                                                        self.full_idxs[:, 0]))]
+
     def _resample_data(self, X, y, N):
         """Limit sampling to N instances per class."""
         if N > 0:
@@ -123,6 +127,11 @@ class PairDataset(data.Dataset):
             n_interclass = sample_ratio * len(intra_pair_idxs)
             np.random.shuffle(inter_pair_idxs)
             inter_pair_idxs = inter_pair_idxs[:n_interclass]
+
+            # Sort as to allow shuffling to be performed by the DataLoader
+            inter_pair_idxs = inter_pair_idxs[
+                np.lexsort((inter_pair_idxs[:, 1], inter_pair_idxs[:, 0]))
+            ]
 
         return intra_pair_idxs, inter_pair_idxs
 
