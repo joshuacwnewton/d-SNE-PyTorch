@@ -1,0 +1,5 @@
+h5py==2.10.0
+numpy==1.18.2
+opencv-python==4.2.0.32
+six==1.14.0
+torch==1.4.0
