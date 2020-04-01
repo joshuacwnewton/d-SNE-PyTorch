@@ -95,7 +95,7 @@ class PairDataset(data.Dataset):
         return pair_idxs
 
     def __len__(self):
-        pass
+        return len(self.pair_idxs)
 
     def __getitem__(self, item):
         pass
