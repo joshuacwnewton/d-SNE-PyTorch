@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 
-from .datasets import PairDataset, SingleDataset
+from data_loading.datasets import PairDataset, SingleDataset
 
 
 def mnist_to_mnistm(mnist_path="./data/MNIST.bin",
