@@ -3,8 +3,8 @@ from torch.utils.data import DataLoader
 from data_loading.datasets import PairDataset, SingleDataset
 
 
-def mnist_to_mnistm(mnist_path="./data/MNIST.bin",
-                    mnistm_path="./data/MNIST-M.bin"):
+def mnist_to_mnistm(mnist_path="./data/mnist.h5",
+                    mnist_m_path="./data/mnist_m.h5"):
 
     # TODO: Config options found in d-SNE code:
     #   -DigitDataset
