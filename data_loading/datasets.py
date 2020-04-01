@@ -82,7 +82,8 @@ class PairDataset(data.Dataset):
             # Sample datasets using configuration parameters
             self.src_X, self.src_y = self._resample_data(src_X, src_y, src_num)
             self.tgt_X, self.tgt_y = self._resample_data(tgt_X, tgt_y, tgt_num)
-            self.pair_idxs = self._create_pairs(sample_ratio)
+            self.intra_idxs, self.inter_idxs = self._create_pairs(sample_ratio)
+            self.full_idxs = np.concatenate((self.intra_idxs, self.inter_idxs))
 
     def _resample_data(self, X, y, N):
         """Limit sampling to N instances per class."""
@@ -105,12 +106,28 @@ class PairDataset(data.Dataset):
 
     def _create_pairs(self, sample_ratio):
         """Enforce ratio of inter/intraclass pairs of samples."""
-        pair_idxs = [None]
 
-        return pair_idxs
+        # Broadcast target/source labels into mesh grid
+        # `source` -> (N, 1) broadcast to (N, M)
+        # `target` -> (1, M) broadcast to (N, M)
+        target, source = np.meshgrid(self.tgt_y, self.src_y)
+
+        # Find index pairs (i_S, i_T) for where src_y == tgt_y
+        intra_pair_idxs = np.argwhere(source == target)
+
+        # Find index pairs (i_S, i_T) for where src_y != tgt_y
+        inter_pair_idxs = np.argwhere(source != target)
+
+        # Randomly sample the interclass pairs to meet desired ratio
+        if sample_ratio > 0:
+            n_interclass = sample_ratio * len(intra_pair_idxs)
+            np.random.shuffle(inter_pair_idxs)
+            inter_pair_idxs = inter_pair_idxs[:n_interclass]
+
+        return intra_pair_idxs, inter_pair_idxs
 
     def __len__(self):
-        return len(self.pair_idxs)
+        return len(self.full_idxs)
 
     def __getitem__(self, item):
         pass
