@@ -1,3 +1,4 @@
+import h5py
 from torch.utils import data
 
 
@@ -69,7 +70,18 @@ class PairDataset(data.Dataset):
         transforms : list of PyTorch transforms
             Preprocessing operations to apply to images when sampling.
         """
-        pass
+        super().__init__()
+        self.transforms = transforms
+
+        with h5py.File(src_path, "r") as f_s, h5py.File(tgt_path, "r") as f_t:
+            # Read datasets from HDF5 file pointers
+            src_X, src_y = f_s[src_X_name], f_s[src_y_name]
+            tgt_X, tgt_y = f_t[tgt_X_name], f_t[tgt_y_name]
+
+            # Sample datasets using configuration parameters
+            self.src_X, self.srx_y = self._resample_data(src_X, src_y, src_num)
+            self.tgt_X, self.tgt_y = self._resample_data(tgt_X, tgt_y, tgt_num)
+            self.pair_idxs = self._create_pairs(sample_ratio)
 
     def _resample_data(self, X, y, N):
         """Limit sampling to N instances per class."""
