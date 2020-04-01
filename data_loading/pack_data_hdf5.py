@@ -59,12 +59,14 @@ def mnist(root_path):
             if name.startswith("y"):
                 magic, num = struct.unpack(">II", f.read(8))
                 data = np.frombuffer(f.read(), dtype=np.uint8)
-                dataset[name] = data
 
             elif name.startswith("X"):
                 magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
                 data = np.frombuffer(f.read(), dtype=np.uint8)
-                dataset[name] = data.reshape(-1, rows, cols)
+                data = data.reshape(-1, rows, cols)
+                data = np.stack((data, )*3, axis=-1)  # Grayscale -> 3-channel
+
+            dataset[name] = data
 
     return dataset
 
