@@ -1,4 +1,5 @@
 import h5py
+import numpy as np
 from torch.utils import data
 
 
@@ -85,6 +86,20 @@ class PairDataset(data.Dataset):
 
     def _resample_data(self, X, y, N):
         """Limit sampling to N instances per class."""
+        if N > 0:
+            # Split labels into set of indexes for each class
+            class_idxs = [np.where(y == c)[0] for c in np.unique(y)]
+
+            # Shuffle each of sets of indexes
+            [np.random.shuffle(i) for i in class_idxs]
+
+            # Take N indexes, or fewer if total is less than N
+            subset_idx = [i[:N] if len(i) >= N else i for i in class_idxs]
+
+            # Use advanced indexing to get subsets of X and y
+            idxs = np.array(subset_idx).ravel()
+            np.random.shuffle(idxs)
+            X, y = X[idxs], y[idxs]
 
         return X, y
 
