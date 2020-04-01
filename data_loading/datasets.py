@@ -79,7 +79,7 @@ class PairDataset(data.Dataset):
             tgt_X, tgt_y = f_t[tgt_X_name], f_t[tgt_y_name]
 
             # Sample datasets using configuration parameters
-            self.src_X, self.srx_y = self._resample_data(src_X, src_y, src_num)
+            self.src_X, self.src_y = self._resample_data(src_X, src_y, src_num)
             self.tgt_X, self.tgt_y = self._resample_data(tgt_X, tgt_y, tgt_num)
             self.pair_idxs = self._create_pairs(sample_ratio)
 
