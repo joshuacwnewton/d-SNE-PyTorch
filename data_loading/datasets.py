@@ -16,8 +16,12 @@ class PairDataset(data.Dataset):
         Images corresponding to samples of target dataset.
     tgt_y : PyTorch Tensor (M, H, W, C)
         Labels corresponding to samples of target dataset.
-    pair_idxs: List of pairs of ints
-        Indexes for pairs of source and target samples.
+    intra_idxs : List of pairs of ints
+        Indices for pairs of source/target samples w/ matching labels.
+    inter_idxs : List of pairs of ints
+        Indices for pairs of source/target samples w/o matching labels.
+    full_idxs: List of pairs of ints
+        Indexes for pairs of source/target samples.
     transforms : List of PyTorch transforms
         Pre-processing operations to apply to images when calling
         __getitem__.
@@ -110,7 +114,6 @@ class PairDataset(data.Dataset):
 
     def _create_pairs(self, sample_ratio):
         """Enforce ratio of inter/intraclass pairs of samples."""
-
         # Broadcast target/source labels into mesh grid
         # `source` -> (N, 1) broadcast to (N, M)
         # `target` -> (1, M) broadcast to (N, M)
