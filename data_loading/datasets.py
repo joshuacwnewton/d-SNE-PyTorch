@@ -75,8 +75,8 @@ class PairDataset(data.Dataset):
 
         with h5py.File(src_path, "r") as f_s, h5py.File(tgt_path, "r") as f_t:
             # Read datasets from HDF5 file pointers
-            src_X, src_y = f_s[src_X_name], f_s[src_y_name]
-            tgt_X, tgt_y = f_t[tgt_X_name], f_t[tgt_y_name]
+            src_X, src_y = f_s[src_X_name][()], f_s[src_y_name][()]
+            tgt_X, tgt_y = f_t[tgt_X_name][()], f_t[tgt_y_name][()]
 
             # Sample datasets using configuration parameters
             self.src_X, self.src_y = self._resample_data(src_X, src_y, src_num)
