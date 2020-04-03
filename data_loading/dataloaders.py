@@ -3,8 +3,8 @@ from torch.utils.data import DataLoader
 from data_loading.datasets import PairDataset, SingleDataset
 
 
-def mnist_to_mnistm(mnist_path="./data/mnist.h5",
-                    mnist_m_path="./data/mnist_m.h5"):
+def get_dsne_dataloaders(src_path, src_X_name, src_y_name,
+                         tgt_path, tgt_X_name, tgt_y_name):
 
     # TODO: Config options found in d-SNE code:
     #   -DigitDataset
@@ -17,8 +17,8 @@ def mnist_to_mnistm(mnist_path="./data/mnist.h5",
     #       -SAMPLE_RATIO
 
     # Pass loaded datasets into Dataset objects
-    train_dataset = PairDataset(mnist_path, "X_tr", "y_tr",
-                                mnist_m_path, "X_tr", "y_tr")
+    train_dataset = PairDataset(src_path, src_X_name, src_y_name,
+                                tgt_path, tgt_X_name, tgt_y_name)
 
     # TODO: Implement SingleDataset
     # test_dataset = SingleDataset(data=mnist_m_path)
@@ -28,8 +28,3 @@ def mnist_to_mnistm(mnist_path="./data/mnist.h5",
     # test_dataloader = DataLoader(test_dataset)
 
     return train_dataloader  #, test_dataloader
-
-
-if __name__ == "__main__":
-    # Temporary call to test PairDataset creation
-    train_dataloader = mnist_to_mnistm()
