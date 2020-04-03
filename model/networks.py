@@ -79,3 +79,109 @@ class LeNetConvBlock(nn.Sequential):
         self.in_channels = getattr(layer, "out_channels", self.out_channels)
         self.image_dim = (int(((self.image_dim[0] - K_h + 2*P_h) / S_h) + 1),
                           int(((self.image_dim[1] - K_w + 2*P_w) / S_w) + 1))
+
+
+class LeNetPlus(nn.Module):
+    """Default network architecture used by d-SNE.
+
+    Attributes
+    ----------
+    model : nn.Sequential
+        Feature extraction and regularization layers in network.
+    output_0_features : nn.Linear
+        Fully-connected layer which outputs feature vectors.
+    output_1_classes : nn.Linear
+        Fully-connected layer which outputs class scores.
+
+    Methods
+    -------
+    forward :
+        Apply layers in sequence to input mini-batch.
+
+    Notes
+    -----
+    The d-SNE publication explicitly mentions using VGG-16 and
+    ResNet-101 to compare with other SOTA methods, FADA and CCSA.
+    However, the provided code in d-SNE's public repository defaults to
+    this architecture.
+
+    https://github.com/ShownX/d-SNE
+
+    I cannot find reference to "LeNetPlus" anywhere but this repository.
+    I have reached out to the author for further clarification on the
+    configuration for which the published results were recorded.
+
+    https://github.com/aws-samples/d-SNE/issues/13
+    """
+
+    def __init__(self, input_dim=(3, 28, 28), classes=10, feature_size=256,
+                 dropout=0.5, use_bn=False, use_inn=False):
+        """Constructor for the LeNetPlus model architecture.
+
+        Parameters
+        ----------
+        input_dim : tuple of ints (C, H, W)
+            Expected dimensions for input images.
+        classes : int
+            Number of classes which defines the final output dimensions.
+        feature_size : int
+            Length of the feature vectors extracted by the network.
+        dropout : float
+            Hyperparameter to use for dropout layer. Setting to <= 0
+            disables this layer.
+        use_bn : bool
+            Flag for whether batch normalization should be used at
+            the start of the inner level of the network.
+        use_inn : bool
+            Flag for whether instance normalization should be used at
+            the start of the outer level of the network.
+        """
+        super(LeNetPlus, self).__init__()
+        (D_in, cur_h, cur_w) = input_dim
+
+        layers = []
+        if use_inn:
+            layers.append(("InstanceNorm2d_0",
+                           nn.InstanceNorm2d(num_features=D_in)))
+
+        for i, D_out in enumerate([32, 64, 128]):
+            if use_bn:
+                layers.append((f"BatchNorm2d_{i}",
+                               nn.BatchNorm2d(num_features=D_in)))
+
+            layers.append((f"ConvBlock_{i}", LeNetConvBlock(
+                n_layers=2,
+                in_channels=D_in,
+                out_channels=D_out,
+                conv2d_kernel_size=3,
+                maxpool2d_kernel_size=2,
+                conv2d_kwargs={"padding": 2},
+                leakyrelu_kwargs={"negative_slope": 0.2},
+                maxpool2d_kwargs={"stride": 2},
+                image_dim=(cur_h, cur_w)
+            )))
+
+            # Update post-convolution dimensions
+            D_in = layers[-1][1].in_channels
+            cur_h, cur_w = layers[-1][1].image_dim
+
+            if dropout > 0:
+                layers.append((f"Dropout_{i}", nn.Dropout2d(dropout)))
+
+        self.model = nn.Sequential(OrderedDict(layers))
+        self.output_0_features = nn.Linear(D_out*cur_h*cur_w, feature_size)
+        self.output_1_classes = nn.Linear(feature_size, classes)
+
+    def forward(self, x):
+        """Compute the forward pass for the network."""
+        # [0, 255] -> [-1, 1]
+        x = (x - 128.) / 128.
+
+        # Convolution block layers
+        x = self.model(x)
+
+        # Fully connected layers
+        features = self.output_0_features(x.reshape(len(x), 1, -1).squeeze())
+        outputs = self.output_1_classes(features)
+
+        return features, outputs
