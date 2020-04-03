@@ -146,8 +146,11 @@ class PairDataset(data.Dataset):
         """Get pair of source and target images/labels."""
         src_idx, tgt_idx = self.full_idxs[idx]
 
-        X_src, y_src = self.src_X[src_idx], self.src_y[src_idx]
-        X_tgt, y_tgt = self.tgt_X[tgt_idx], self.tgt_y[tgt_idx]
+        # (H, W, C) - OpenCV, etc. -> (C, H, W) - PyTorch
+        X_src = np.transpose(self.src_X[src_idx], (2, 0, 1))
+        X_tgt = np.transpose(self.tgt_X[tgt_idx], (2, 0, 1))
+        y_src = self.src_y[src_idx]
+        y_tgt = self.tgt_y[tgt_idx]
 
         for transform in self.transforms:
             X_src, X_tgt = transform(X_src), transform(X_tgt)
