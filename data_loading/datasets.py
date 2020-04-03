@@ -1,6 +1,11 @@
+# Stdlib imports
+
+# Third-party imports
 import h5py
 import numpy as np
 from torch.utils import data
+
+# Local application imports
 
 
 class PairDataset(data.Dataset):

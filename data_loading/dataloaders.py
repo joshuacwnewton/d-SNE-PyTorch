@@ -1,5 +1,11 @@
+"""Dataloaders for sampling and batching datasets."""
+
+# Stdlib imports
+
+# Third-party imports
 from torch.utils.data import DataLoader
 
+# Local application imports
 from data_loading.datasets import PairDataset, SingleDataset
 
 

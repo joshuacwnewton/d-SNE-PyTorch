@@ -7,15 +7,19 @@ datasets : str or list of str
     present in the following list: MNIST, MNIST-M, USPS, SVHN
 """
 
+# Stdlib imports
 import argparse
 import os
 from pathlib import Path
 import gzip
 import struct
 
+# Third-party imports
 import h5py
 import numpy as np
 import cv2
+
+# Local application imports
 
 
 def mnist(root_path):

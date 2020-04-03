@@ -1,6 +1,12 @@
+"""Module containing CNN architectures for demonstrating d-SNE."""
+
+# Stdlib imports
 from collections import OrderedDict
 
+# Third-party imports
 from torch import nn
+
+# Local application imports
 
 
 class LeNetConvBlock(nn.Sequential):
