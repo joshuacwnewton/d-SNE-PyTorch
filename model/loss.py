@@ -39,7 +39,8 @@ class DSNELoss(_Loss):
            `min_interclass` - `max_interclass` >> `margin`
 
         4. Calculate loss for cases where the difference is NOT greater
-            than the margin. Here, loss == abs(difference)."""
+            than the margin. Here, loss == abs(difference).
+    """
 
     def __init__(self, margin=1.0, fn=False):
         """Assign parameters as attributes."""
