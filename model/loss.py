@@ -1,5 +1,6 @@
 import torch
-from torch.nn.modules.loss import _Loss
+from torch.nn.modules.loss import _Loss, _WeightedLoss
+from torch.nn import CrossEntropyLoss
 
 
 class DSNELoss(_Loss):
@@ -84,3 +85,46 @@ class DSNELoss(_Loss):
         loss = torch.abs(differences.sub(self.margin).clamp(max=0))
 
         return loss
+
+
+class CombinedLoss(_WeightedLoss):
+    """Combine typical cross entropy loss with d-SNE loss using a
+    weighted sum.
+
+    Attributes
+    ----------
+    loss_dnse
+        Instance of DSNELoss class.
+    loss_xent
+        Instance of CrossEntropyLoss class.
+    alpha : float
+        Scale factor for weighted sum of losses.
+    """
+
+    def __init__(self, margin=1.0, fn=False, alpha=0.1):
+        """Create the loss functions to be weighted.
+
+        Parameters
+        ----------
+        margin : float
+            Minimum required margin between `min_intraclass_dist` and
+            `max_interclass_dist`.
+        fn : Bool
+            Flag for whether to use instance normalization on feature
+            vectors prior to loss calculation.
+        alpha : float
+            Scale factor for weighted sum of losses.
+        """
+        super(CombinedLoss, self).__init__()
+
+        self.loss_dsne = DSNELoss(margin, fn)
+        # `reduction` == "mean" by default. Instead, keep per-image losses
+        self.loss_xent = CrossEntropyLoss(reduction="none")
+        self.alpha = alpha
+
+    def forward(self, ft_src, y_pred_src, y_src, ft_tgt, y_pred_tgt, y_tgt):
+        """Compute forward-pass for loss function."""
+        loss_xent = self.loss_xent(y_pred_src, y_src.long())
+        loss_dsne = self.loss_dsne(ft_src, y_src, ft_tgt, y_tgt)
+
+        return (1 - self.alpha)*loss_xent + self.alpha*loss_dsne
