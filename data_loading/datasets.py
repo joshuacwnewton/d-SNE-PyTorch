@@ -50,7 +50,7 @@ class PairDataset(data.Dataset):
     def __init__(self, src_path, tgt_path,
                  src_X_name="X_tr", tgt_X_name="X_tr",
                  src_y_name="y_tr", tgt_y_name="y_tr",
-                 src_num=-1, tgt_num=10, sample_ratio=3,  transforms=()):
+                 src_num=-1, tgt_num=10, sample_ratio=3,  transform=()):
         """Initialize dataset by sampling subsets of source/target.
 
         Parameters
@@ -78,7 +78,7 @@ class PairDataset(data.Dataset):
             Preprocessing operations to apply to images when sampling.
         """
         super().__init__()
-        self.transforms = transforms
+        self.transform = transform
 
         with h5py.File(src_path, "r") as f_s, h5py.File(tgt_path, "r") as f_t:
             # Read datasets from HDF5 file pointers
@@ -149,18 +149,13 @@ class PairDataset(data.Dataset):
 
     def __getitem__(self, idx):
         """Get pair of source and target images/labels."""
-        X, y = {}, {}
         src_idx, tgt_idx = self.full_idxs[idx]
 
-        y['src'] = self.y['src'][src_idx]
-        y['tgt'] = self.y['tgt'][tgt_idx]
-
-        # (H, W, C) - OpenCV, etc. -> (C, H, W) - PyTorch
-        X['src'] = np.transpose(self.X['src'][src_idx], (2, 0, 1))
-        X['tgt'] = np.transpose(self.X['tgt'][tgt_idx], (2, 0, 1))
+        X = {'src': self.X['src'][src_idx], 'tgt': self.X['tgt'][tgt_idx]}
         for key, value in X.items():
-            for transform in self.transforms:
-                X[key] = transform(X[key])
+            X[key] = self.transform(X[key])
+
+        y = {'src': self.y['src'][src_idx], 'tgt': self.y['tgt'][tgt_idx]}
 
         return X, y
 

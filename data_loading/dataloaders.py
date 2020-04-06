@@ -4,6 +4,8 @@
 
 # Third-party imports
 from torch.utils.data import DataLoader
+from torchvision.transforms import (Compose, ToPILImage, ToTensor,
+                                    Resize, Normalize)
 
 # Local application imports
 from data_loading.datasets import PairDataset, SingleDataset
@@ -22,7 +24,13 @@ def get_dsne_dataloaders(src_path, tgt_path):
     #       -SAMPLE_RATIO
 
     # Pass loaded datasets into Dataset objects
-    train_dataset = PairDataset(src_path, tgt_path)
+    transforms = Compose([
+        ToPILImage(),
+        Resize(32),
+        ToTensor(),
+        Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+    train_dataset = PairDataset(src_path, tgt_path, transform=transforms)
 
     # TODO: Implement SingleDataset
     # test_dataset = SingleDataset(data=mnist_m_path)

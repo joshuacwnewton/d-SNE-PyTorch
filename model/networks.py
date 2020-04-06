@@ -180,9 +180,6 @@ class LeNetPlus(nn.Module):
 
     def forward(self, x):
         """Compute the forward pass for the network."""
-        # [0, 255] -> [-1, 1]
-        x = (x - 128.) / 128.
-
         # Convolution block layers
         x = self.model(x)
 
