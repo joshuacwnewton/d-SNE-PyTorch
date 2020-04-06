@@ -196,5 +196,8 @@ _build
 *.zip
 *.pdf
 
-# d-SNE Data directory
+# d-SNE data directory
 data_loading/data
+
+# d-SNE logging directory
+saved
