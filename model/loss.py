@@ -4,7 +4,7 @@ from torch.nn import CrossEntropyLoss
 
 
 class DSNELoss(_Loss):
-    """d-SNE loss for batch of source and target features.
+    """d-SNE loss for paired batches of source and target features.
 
     Attributes
     ----------
@@ -22,11 +22,11 @@ class DSNELoss(_Loss):
     -----
     The loss calculation involves the following plain-English steps:
 
-    For each image in the target batch...
-        1. Compare its feature vector to all FVs in the source batch
+    For each image in the first batch...
+        1. Compare its feature vector to all FVs in the second batch
             using a distance function. (L2-norm/Euclidean used here.)
-        2. Find the minimum interclass distance (y_tgt != y_src) and
-            maximum intraclass distance (y_tgt == y_src)
+        2. Find the minimum interclass distance (y_1 != y_2) and
+            maximum intraclass distance (y_1 == y_2)
         3. Check that the difference between these two distances is
             greater than a specified margin.
 
@@ -57,23 +57,45 @@ class DSNELoss(_Loss):
         else:
             raise NotImplementedError
 
-    def forward(self, fts, ys, ftt, yt):
-        """Compute forward pass for loss function."""
-        # If src_batch -> (N, F) and tgt_batch -> (M, F), then
-        # distances for all pairs will be of shape (N, M, F)
-        broadcast_size = (fts.shape[0], ftt.shape[0], fts.shape[1])
+    def forward(self, ft1, y1, ft2, y2):
+        """Compute forward pass for loss function.
 
-        # Compute distances between all pairs of target and source vectors
-        fts_rpt = fts.unsqueeze(0).expand(broadcast_size)
-        ftt_rpt = ftt.unsqueeze(1).expand(broadcast_size)
-        dists = torch.sum((ftt_rpt - fts_rpt)**2, dim=2)
+        Parameters
+        ----------
+        ft1 : Tensor
+            Feature vectors for the data used to train the network.
+        y1 : Tensor
+            Labels for the data used to train the network.
+        ft2 : Tensor
+            Feature vectors for the data that is used to generate
+            comparisons with the training data.
+        y2 : Tensor
+            Labels for the data that is used to generate comparisons
+            with the training data.
 
-        # Split source/target distances into 2 groups:
-        #   1. intraclass distances (y_tgt == y_src)
-        #   2. interclass distances (y_tgt != y_src)
-        ys_rpt = yt.unsqueeze(0).expand(broadcast_size)
-        yt_rpt = yt.unsqueeze(1).expand(broadcast_size)
-        y_same = torch.eq(yt_rpt, ys_rpt)   # Boolean mask
+        Notes
+        -----
+        Both "1" and "2" could correspond to source or target datasets,
+        depending on how training is conducted.
+
+        For example, when training on the source dataset, "source" would
+        be passed to 1, and "target" would be passed to 2.
+        """
+        # If batch 1 -> (N, F) and batch 2 -> (M, F), then
+        # distances for all combinations of pairs will be of shape (N, M, F)
+        broadcast_size = (ft1.shape[0], ft2.shape[0], ft1.shape[1])
+
+        # Compute distances between all <1, 2> pairs of vectors
+        ft1_rpt = ft1.unsqueeze(0).expand(broadcast_size)
+        ft2_rpt = ft2.unsqueeze(1).expand(broadcast_size)
+        dists = torch.sum((ft1_rpt - ft2_rpt)**2, dim=2)
+
+        # Split <1, 2> distances into 2 groups:
+        #   1. intraclass distances (y_1 == y_2)
+        #   2. interclass distances (y_1 != y_2)
+        y1_rpt = y1.unsqueeze(0).expand(broadcast_size)
+        y2_rpt = y2.unsqueeze(1).expand(broadcast_size)
+        y_same = torch.eq(y1_rpt, y2_rpt)   # Boolean mask
         y_diff = torch.logical_not(y_same)  # Boolean mask
         intra_cls_dists = dists * y_same    # Set 0 where classes are different
         inter_cls_dists = dists * y_diff    # Set 0 where classes are the same
@@ -83,10 +105,10 @@ class DSNELoss(_Loss):
         max_dists = max_dists.expand(broadcast_size[0:2])
         inter_cls_dists = torch.where(y_same, max_dists, inter_cls_dists)
 
-        # For each target image, find the minimum interclass distance
+        # For each training image, find the minimum interclass distance
         min_inter_cls_dist = inter_cls_dists.min(1)[0][0, :]
 
-        # For each target image, find the maximum intraclass distance
+        # For each training image, find the maximum intraclass distance
         max_intra_cls_dist = intra_cls_dists.max(1)[0][0, :]
 
         # No loss for differences greater than margin (clamp to 0)
