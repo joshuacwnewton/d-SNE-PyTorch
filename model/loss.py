@@ -124,7 +124,7 @@ class CombinedLoss(_WeightedLoss):
 
     Attributes
     ----------
-    loss_dnse
+    loss_dsne
         Instance of DSNELoss class.
     loss_xent
         Instance of CrossEntropyLoss class.
