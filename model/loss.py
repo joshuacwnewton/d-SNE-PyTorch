@@ -14,6 +14,9 @@ class DSNELoss(_Loss):
     fn : Bool
         Flag for whether to use instance normalization on feature
         vectors prior to loss calculation.
+    reduction : str
+        Name of torch function for reducing loss vector to a scalar. Set
+        to "mean" to mimic CrossEntropyLoss default parameter.
 
     Notes
     -----
@@ -42,12 +45,17 @@ class DSNELoss(_Loss):
             than the margin. Here, loss == abs(difference).
     """
 
-    def __init__(self, margin=1.0, fn=False):
+    def __init__(self, margin=1.0, fn=False, reduction="mean"):
         """Assign parameters as attributes."""
         super(DSNELoss, self).__init__()
 
         self.margin = margin
         self.fn = fn
+
+        if reduction == "mean":
+            self.reduce_func = torch.mean
+        else:
+            raise NotImplementedError
 
     def forward(self, fts, ys, ftt, yt):
         """Compute forward pass for loss function."""
@@ -85,7 +93,7 @@ class DSNELoss(_Loss):
         differences = min_inter_cls_dist.sub(max_intra_cls_dist)
         loss = torch.abs(differences.sub(self.margin).clamp(max=0))
 
-        return loss
+        return self.reduce_func(loss)
 
 
 class CombinedLoss(_WeightedLoss):
@@ -102,7 +110,7 @@ class CombinedLoss(_WeightedLoss):
         Scale factor for weighted sum of losses.
     """
 
-    def __init__(self, margin=1.0, fn=False, alpha=0.1):
+    def __init__(self, margin=1.0, fn=False, alpha=0.1, reduction="mean"):
         """Create the loss functions to be weighted.
 
         Parameters
@@ -118,9 +126,8 @@ class CombinedLoss(_WeightedLoss):
         """
         super(CombinedLoss, self).__init__()
 
-        self.loss_dsne = DSNELoss(margin, fn)
-        # `reduction` == "mean" by default. Instead, keep per-image losses
-        self.loss_xent = CrossEntropyLoss(reduction="none")
+        self.loss_dsne = DSNELoss(margin, fn, reduction)
+        self.loss_xent = CrossEntropyLoss(reduction=reduction)
         self.alpha = alpha
 
     def forward(self, ft_src, y_pred_src, y_src, ft_tgt, y_pred_tgt, y_tgt):
