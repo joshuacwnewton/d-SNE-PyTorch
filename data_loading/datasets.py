@@ -13,14 +13,10 @@ class PairDataset(data.Dataset):
 
     Attributes
     ----------
-    src_X : PyTorch Tensor (N, H, W, C)
-        Images corresponding to samples of source dataset.
-    src_y : PyTorch Tensor (N, 1)
-        Labels corresponding to samples of source dataset.
-    tgt_X : PyTorch Tensor (M, H, W, C)
-        Images corresponding to samples of target dataset.
-    tgt_y : PyTorch Tensor (M, H, W, C)
-        Labels corresponding to samples of target dataset.
+    X : dict of PyTorch Tensors (N, H, W, C)
+        Images corresponding to samples of source/target datasets.
+    y : dict of PyTorch Tensors (N, 1)
+        Labels corresponding to samples of source/target datasets.
     intra_idxs : List of pairs of ints
         Indices for pairs of source/target samples w/ matching labels.
     inter_idxs : List of pairs of ints
@@ -90,8 +86,11 @@ class PairDataset(data.Dataset):
             tgt_X, tgt_y = f_t[tgt_X_name][()], f_t[tgt_y_name][()]
 
             # Sample datasets using configuration parameters
-            self.src_X, self.src_y = self._resample_data(src_X, src_y, src_num)
-            self.tgt_X, self.tgt_y = self._resample_data(tgt_X, tgt_y, tgt_num)
+            self.X, self.y = {}, {}
+            self.X['src'], self.y['src'] = self._resample_data(src_X, src_y,
+                                                               src_num)
+            self.X['tgt'], self.y['tgt'] = self._resample_data(tgt_X, tgt_y,
+                                                               tgt_num)
             self.intra_idxs, self.inter_idxs = self._create_pairs(sample_ratio)
             self.full_idxs = np.concatenate((self.intra_idxs, self.inter_idxs))
 
@@ -123,7 +122,7 @@ class PairDataset(data.Dataset):
         # Broadcast target/source labels into mesh grid
         # `source` -> (N, 1) broadcast to (N, M)
         # `target` -> (1, M) broadcast to (N, M)
-        target, source = np.meshgrid(self.tgt_y, self.src_y)
+        target, source = np.meshgrid(self.y['tgt'], self.y['src'])
 
         # Find index pairs (i_S, i_T) for where src_y == tgt_y
         intra_pair_idxs = np.argwhere(source == target)
@@ -150,18 +149,20 @@ class PairDataset(data.Dataset):
 
     def __getitem__(self, idx):
         """Get pair of source and target images/labels."""
+        X, y = {}, {}
         src_idx, tgt_idx = self.full_idxs[idx]
 
+        y['src'] = self.y['src'][src_idx]
+        y['tgt'] = self.y['tgt'][tgt_idx]
+
         # (H, W, C) - OpenCV, etc. -> (C, H, W) - PyTorch
-        X_src = np.transpose(self.src_X[src_idx], (2, 0, 1))
-        X_tgt = np.transpose(self.tgt_X[tgt_idx], (2, 0, 1))
-        y_src = self.src_y[src_idx]
-        y_tgt = self.tgt_y[tgt_idx]
+        X['src'] = np.transpose(self.X['src'][src_idx], (2, 0, 1))
+        X['tgt'] = np.transpose(self.X['tgt'][tgt_idx], (2, 0, 1))
+        for key, value in X.items():
+            for transform in self.transforms:
+                X[key] = transform(X[key])
 
-        for transform in self.transforms:
-            X_src, X_tgt = transform(X_src), transform(X_tgt)
-
-        return X_src, y_src, X_tgt, y_tgt
+        return X, y
 
 
 class SingleDataset(data.Dataset):

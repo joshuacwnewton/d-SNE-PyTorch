@@ -219,18 +219,23 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
         self.train_metrics.reset()
-        for batch_idx, (X_src, y_src, X_tgt, y_tgt) \
-                in enumerate(self.data_loader):
-            X_src, y_src = X_src.to(self.device), y_src.to(self.device)
-            X_tgt, y_tgt = X_tgt.to(self.device), y_tgt.to(self.device)
 
-            self.optimizer.zero_grad()
-            ft_src, y_pred_src = self.model(X_src)
-            ft_tgt, y_pred_tgt = self.model(X_tgt)
-            loss = self.criterion(ft_src, y_pred_src, y_src,
-                                  ft_tgt, y_pred_tgt, y_tgt)
-            loss.backward()
-            self.optimizer.step()
+        for batch_idx, (X, y) in enumerate(self.data_loader):
+            X = {k: v.to(self.device) for k, v in X.items()}  # Send X to GPU
+            y = {k: v.to(self.device) for k, v in y.items()}  # Send y to GPU
+
+            # Repeat train step for both target and source datasets
+            for train_name in X.keys():
+                self.optimizer.zero_grad()
+
+                ft, y_pred = {}, {}
+                for name in X.keys():
+                    ft[name], y_pred[name] = self.model(X[name])
+
+                loss = self.criterion(ft, y_pred, y, train_name)
+                loss.backward()
+
+                self.optimizer.step()
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
             self.train_metrics.update('loss', loss.item())
