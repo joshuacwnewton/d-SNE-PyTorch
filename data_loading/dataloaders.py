@@ -9,8 +9,7 @@ from torch.utils.data import DataLoader
 from data_loading.datasets import PairDataset, SingleDataset
 
 
-def get_dsne_dataloaders(src_path, src_X_name, src_y_name,
-                         tgt_path, tgt_X_name, tgt_y_name):
+def get_dsne_dataloaders(src_path, tgt_path):
 
     # TODO: Config options found in d-SNE code:
     #   -DigitDataset
@@ -23,8 +22,7 @@ def get_dsne_dataloaders(src_path, src_X_name, src_y_name,
     #       -SAMPLE_RATIO
 
     # Pass loaded datasets into Dataset objects
-    train_dataset = PairDataset(src_path, src_X_name, src_y_name,
-                                tgt_path, tgt_X_name, tgt_y_name)
+    train_dataset = PairDataset(src_path, tgt_path)
 
     # TODO: Implement SingleDataset
     # test_dataset = SingleDataset(data=mnist_m_path)

@@ -35,9 +35,7 @@ def main(config):
     # data_loader = config.init_obj('data_loader', module_data)
     # valid_data_loader = data_loader.split_validation()
     train_dataloader = get_dsne_dataloaders("data_loading/data/mnist.h5",
-                                            "X_tr", "y_tr",
-                                            "data_loading/data/mnist_m.h5",
-                                            "X_tr", "y_tr")
+                                            "data_loading/data/mnist_m.h5")
 
     # build model architecture, then print to console
     # model = config.init_obj('arch', module_arch)

@@ -51,27 +51,28 @@ class PairDataset(data.Dataset):
     dataset.
     """
 
-    def __init__(self, src_path, src_X_name, src_y_name,
-                 tgt_path, tgt_X_name, tgt_y_name, sample_ratio=3,
-                 src_num=-1, tgt_num=10, transforms=()):
+    def __init__(self, src_path, tgt_path,
+                 src_X_name="X_tr", tgt_X_name="X_tr",
+                 src_y_name="y_tr", tgt_y_name="y_tr",
+                 src_num=-1, tgt_num=10, sample_ratio=3,  transforms=()):
         """Initialize dataset by sampling subsets of source/target.
 
         Parameters
         ----------
         src_path : str or Path object
             Path to HDF5 file for source dataset.
-        src_X_name : str
-            Name of image dataset, used as key into source HDF5 file.
-        src_y_name : str
-            Name of label dataset, used as key into source HDF5 file.
-        src_num : int
-            Number of samples to use per class for the source dataset.
         tgt_path : str or Path object
             Path to HDF5 file for target dataset.
+        src_X_name : str
+            Name of image dataset, used as key into source HDF5 file.
         tgt_X_name : str
             Name of image dataset, used as key into target HDF5 file.
+        src_y_name : str
+            Name of label dataset, used as key into source HDF5 file.
         tgt_y_name : str
             Name of label dataset, used as key into target HDF5 file.
+        src_num : int
+            Number of samples to use per class for the source dataset.
         tgt_num : int
             Number of samples to use per class for the source dataset.
         sample_ratio : int
