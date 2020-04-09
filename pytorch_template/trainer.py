@@ -20,11 +20,13 @@ class DSNETrainer:
         self.log_step = int(np.sqrt(data_loader.batch_size))
         self.writer = writer
 
-        # Set model using appropriate device configuration (CPU/GPU)
-        self.device, device_ids = self._prepare_device(n_gpu)
+        # Set device configuration (CPU/GPU) then move model to device
+        self.n_gpu_used = self._prepare_device(n_gpu)
         self.model = model.to(self.device)
-        if len(device_ids) > 1:
-            self.model = torch.nn.DataParallel(model, device_ids=device_ids)
+        if self.n_gpu_used > 1:
+            self.model = torch.nn.DataParallel(
+                model, device_ids=list(range(self.n_gpu_used))
+            )
 
         # Set remaining core objects needed for training
         self.data_loader = data_loader
@@ -60,22 +62,22 @@ class DSNETrainer:
         if resume is not None:
             self._resume_checkpoint(resume)
 
-    def _prepare_device(self, n_gpu_use):
+    def _prepare_device(self, n_gpu_requested):
         """
         setup GPU device if available, move model into configured device
         """
-        n_gpu = torch.cuda.device_count()
-        if n_gpu_use > 0 and n_gpu == 0:
-            self.logger.warning("Warning: There\'s no GPU available on this machine,"
-                                "training will be performed on CPU.")
-            n_gpu_use = 0
-        if n_gpu_use > n_gpu:
-            self.logger.warning("Warning: The number of GPU\'s configured to use is {}, but only {} are available "
-                                "on this machine.".format(n_gpu_use, n_gpu))
-            n_gpu_use = n_gpu
-        device = torch.device('cuda:0' if n_gpu_use > 0 else 'cpu')
-        list_ids = list(range(n_gpu_use))
-        return device, list_ids
+        n_gpu_available = torch.cuda.device_count()
+        if n_gpu_requested > n_gpu_available:
+            self.logger.warning(f"Warning: {n_gpu_requested} GPUs requested "
+                                f"but only {n_gpu_available} GPUs available."
+                                f"Training on minimum GPUs. (Note: 0 => CPU)")
+            n_gpu_used = n_gpu_available
+        else:
+            n_gpu_used = n_gpu_requested
+
+        self.device = torch.device('cuda:0' if n_gpu_requested > 0 else 'cpu')
+
+        return n_gpu_used
 
     def _save_checkpoint(self, epoch, save_best=False):
         """
