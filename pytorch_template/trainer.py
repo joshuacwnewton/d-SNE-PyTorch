@@ -16,58 +16,61 @@ class DSNETrainer:
     Base class for all trainers
     """
     def __init__(self, data_loader, model, criterion, metric_ftns, optimizer,
-                 logger, writer, n_gpu, epochs, early_stop,
-                 save_period, monitor, save_dir, len_epoch=None, resume=None):
+                 logger, writer, n_gpu, epochs, save_period, save_dir,
+                 early_stop, monitor='off', len_epoch=None, resume=None):
+        # Set logging functions
         self.logger = logger
+        self.log_step = int(np.sqrt(data_loader.batch_size))
         self.writer = writer
 
-        # setup GPU device if available, move model into configured device
+        # Set model using appropriate device configuration (CPU/GPU)
         self.device, device_ids = self._prepare_device(n_gpu)
         self.model = model.to(self.device)
         if len(device_ids) > 1:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
 
+        # Set remaining core objects needed for training
+        self.data_loader = data_loader
         self.criterion = criterion
-        self.metric_ftns = metric_ftns
         self.optimizer = optimizer
 
+        # Set config for duration of training
+        self.start_epoch = 1
         self.epochs = epochs
-        self.save_period = save_period
-        self.monitor = monitor
+        if len_epoch is None:
+            self.len_epoch = len(self.data_loader)
+        else:
+            self.data_loader = inf_loop(data_loader)
+            self.len_epoch = len_epoch
 
-        # configuration to monitor model performance and save best
-        if self.monitor == 'off':
+        # Set config for monitoring evaluation metrics
+        self.metric_ftns = metric_ftns
+        self.train_metrics = MetricTracker('loss',
+                                           *[m.__name__ for m in metric_ftns],
+                                           writer=self.writer)
+        if monitor == 'off':
             self.mnt_mode = 'off'
             self.mnt_best = 0
         else:
-            self.mnt_mode, self.mnt_metric = self.monitor.split()
+            self.mnt_mode, self.mnt_metric = monitor.split()
             assert self.mnt_mode in ['min', 'max']
 
             self.mnt_best = inf if self.mnt_mode == 'min' else -inf
             self.early_stop = early_stop
 
-        self.start_epoch = 1
-
+        # Set config for saving/reloading checkpoints
+        self.save_period = save_period
         self.checkpoint_dir = Path(save_dir) / "ckpt"
-
         if resume is not None:
             self._resume_checkpoint(resume)
 
-        self.data_loader = data_loader
-        if len_epoch is None:
-            # epoch-based training
-            self.len_epoch = len(self.data_loader)
-        else:
-            # iteration-based training
-            self.data_loader = inf_loop(data_loader)
-            self.len_epoch = len_epoch
+        # Config present in "pytorch_template" but not used by d-SNE
         self.valid_data_loader = None  # TODO
         self.do_validation = self.valid_data_loader is not None
+        self.valid_metrics = MetricTracker('loss',
+                                           *[m.__name__ for m in metric_ftns],
+                                           writer=self.writer)
         self.lr_scheduler = None  # TODO
-        self.log_step = int(np.sqrt(data_loader.batch_size))
-
-        self.train_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
-        self.valid_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
     def train(self):
         """
