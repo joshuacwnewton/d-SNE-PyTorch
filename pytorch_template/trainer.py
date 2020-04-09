@@ -5,27 +5,20 @@ from abc import abstractmethod, ABCMeta
 import numpy as np
 from numpy import inf
 import torch
-
-# Function for visualizing grid of images, used in TensorboardWriter
 from torchvision.utils import make_grid
 
-# Basically just SummaryWriter but with checking for utils.TB vs. TBX
-from pytorch_template.visualization import TensorboardWriter
-
-# Wrapper function for endless data loader, used if len_epoch not == full data
-from pytorch_template.utils import inf_loop
-
-# Class for keeping running average of various metrics, stored in DataFrame
-from pytorch_template.utils import MetricTracker
+from pytorch_template.utils import inf_loop, MetricTracker
 
 
 class BaseTrainer(metaclass=ABCMeta):
     """
     Base class for all trainers
     """
-    def __init__(self, model, criterion, metric_ftns, optimizer, config):
+    def __init__(self, model, criterion, metric_ftns, optimizer, logger,
+                 writer, config):
         self.config = config
-        self.logger = config.get_logger('trainer', config['trainer']['verbosity'])
+        self.logger = logger
+        self.writer = writer
 
         # setup GPU device if available, move model into configured device
         self.device, device_ids = self._prepare_device(config['n_gpu'])
@@ -56,9 +49,6 @@ class BaseTrainer(metaclass=ABCMeta):
         self.start_epoch = 1
 
         self.checkpoint_dir = config.save_dir
-
-        # setup visualization writer instance
-        self.writer = TensorboardWriter(config.log_dir, self.logger, cfg_trainer['tensorboard'])
 
         if config.resume is not None:
             self._resume_checkpoint(config.resume)
@@ -190,9 +180,11 @@ class Trainer(BaseTrainer):
     """
     Trainer class
     """
-    def __init__(self, model, criterion, metric_ftns, optimizer, config, data_loader,
-                 valid_data_loader=None, lr_scheduler=None, len_epoch=None):
-        super().__init__(model, criterion, metric_ftns, optimizer, config)
+    def __init__(self, model, criterion, metric_ftns, optimizer, logger,
+                 writer, config, data_loader, valid_data_loader=None,
+                 lr_scheduler=None, len_epoch=None):
+        super().__init__(model, criterion, metric_ftns, optimizer, logger,
+                         writer, config)
         self.config = config
         self.data_loader = data_loader
         if len_epoch is None:
