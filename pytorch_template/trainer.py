@@ -129,22 +129,22 @@ class DSNETrainer:
         :param log: logging information of the epoch
         :param save_best: if True, rename the saved checkpoint to 'model_best.pth'
         """
-        arch = type(self.model).__name__
         state = {
-            'arch': arch,
+            'arch_type': type(self.model).__name__,
+            'optim_type': type(self.optimizer).__name__,
             'epoch': epoch,
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
             'monitor_best': self.mnt_best,
-            'config': self.config
         }
-        filename = str(self.checkpoint_dir / 'checkpoint-epoch{}.pth'.format(epoch))
-        torch.save(state, filename)
-        self.logger.info("Saving checkpoint: {} ...".format(filename))
+
+        filenames = [self.checkpoint_dir / f'checkpoint-epoch{epoch}.pth']
         if save_best:
-            best_path = str(self.checkpoint_dir / 'model_best.pth')
-            torch.save(state, best_path)
-            self.logger.info("Saving current best: model_best.pth ...")
+            filenames.append(self.checkpoint_dir / 'model_best.pth')
+
+        for fn in filenames:
+            self.logger.info(f"Saving epoch {epoch} using ckpt name '{fn}'...")
+            torch.save(state, fn)
 
     def _resume_checkpoint(self, resume_path):
         """
@@ -152,26 +152,31 @@ class DSNETrainer:
 
         :param resume_path: Checkpoint path to be resumed
         """
-        resume_path = str(resume_path)
-        self.logger.info("Loading checkpoint: {} ...".format(resume_path))
+        self.logger.info(f"Loading checkpoint: {resume_path} ...")
         checkpoint = torch.load(resume_path)
+
+        # Warn if type names don't match
+        if checkpoint['arch_type'] != type(self.model).__name__:  # noqa
+            self.logger.warning(
+                "Warning: Architecture type passed to Trainer is different"
+                " from that of checkpoint. This may yield an exception while"
+                " state_dict is being loaded."
+            )
+        if checkpoint['optim_type'] != type(self.optimizer).__name__:  # noqa
+            self.logger.warning(
+                "Warning: Optimizer type passed to Trainer is different"
+                " from that of checkpoint. This may yield an exception while"
+                " state_dict is being loaded."
+            )
+
+        # Load relevant values from checkpoint dict
+        self.model.load_state_dict(checkpoint['state_dict'])
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.start_epoch = checkpoint['epoch'] + 1
         self.mnt_best = checkpoint['monitor_best']
 
-        # load architecture params from checkpoint.
-        if checkpoint['config']['arch'] != self.config['arch']:
-            self.logger.warning("Warning: Architecture configuration given in config file is different from that of "
-                                "checkpoint. This may yield an exception while state_dict is being loaded.")
-        self.model.load_state_dict(checkpoint['state_dict'])
-
-        # load optimizer state from checkpoint only when optimizer type is not changed.
-        if checkpoint['config']['optimizer']['type'] != self.config['optimizer']['type']:
-            self.logger.warning("Warning: Optimizer type given in config file is different from that of checkpoint. "
-                                "Optimizer parameters not being resumed.")
-        else:
-            self.optimizer.load_state_dict(checkpoint['optimizer'])
-
-        self.logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))
+        self.logger.info(f"Checkpoint loaded. Resuming training from "
+                         f"epoch {self.start_epoch}...")
 
     def _train_epoch(self, epoch):
         """
