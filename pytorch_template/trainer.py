@@ -44,19 +44,18 @@ class DSNETrainer:
             self.len_epoch = len_epoch
 
         # Set config for monitoring evaluation metrics
-        self.metric_ftns = metric_ftns
-        self.train_metrics = MetricTracker('loss',
-                                           *[m.__name__ for m in metric_ftns],
-                                           writer=self.writer)
         if monitor == 'off':
             self.mnt_mode = 'off'
             self.mnt_best = 0
         else:
             self.mnt_mode, self.mnt_metric = monitor.split()
             assert self.mnt_mode in ['min', 'max']
-
             self.mnt_best = inf if self.mnt_mode == 'min' else -inf
             self.early_stop = early_stop
+        self.metric_ftns = metric_ftns
+        self.train_metrics = MetricTracker('loss',
+                                           *[m.__name__ for m in metric_ftns],
+                                           writer=self.writer)
 
         # Set config for saving/reloading checkpoints
         self.save_period = save_period
