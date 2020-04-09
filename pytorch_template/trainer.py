@@ -60,9 +60,6 @@ class DSNETrainer:
         if resume is not None:
             self._resume_checkpoint(resume)
 
-        # Config present in "pytorch_template" but not used by d-SNE
-        self.lr_scheduler = None  # TODO
-
     def train(self):
         """
         Full training logic
@@ -219,9 +216,6 @@ class DSNETrainer:
             if batch_idx == self.len_epoch:
                 break
         log = self.train_metrics.result()
-
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
 
         return log
 
