@@ -64,11 +64,6 @@ class DSNETrainer:
             self._resume_checkpoint(resume)
 
         # Config present in "pytorch_template" but not used by d-SNE
-        self.valid_data_loader = None  # TODO
-        self.do_validation = self.valid_data_loader is not None
-        self.valid_metrics = MetricTracker('loss',
-                                           *[m.__name__ for m in metric_ftns],
-                                           writer=self.writer)
         self.lr_scheduler = None  # TODO
 
     def train(self):
@@ -228,40 +223,10 @@ class DSNETrainer:
                 break
         log = self.train_metrics.result()
 
-        if self.do_validation:
-            val_log = self._valid_epoch(epoch)
-            log.update(**{'val_'+k : v for k, v in val_log.items()})
-
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
+
         return log
-
-    def _valid_epoch(self, epoch):
-        """
-        Validate after training an epoch
-
-        :param epoch: Integer, current training epoch.
-        :return: A log that contains information about validation
-        """
-        self.model.eval()
-        self.valid_metrics.reset()
-        with torch.no_grad():
-            for batch_idx, (data, target) in enumerate(self.valid_data_loader):
-                data, target = data.to(self.device), target.to(self.device)
-
-                output = self.model(data)
-                loss = self.criterion(output, target)
-
-                self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
-                self.valid_metrics.update('loss', loss.item())
-                for met in self.metric_ftns:
-                    self.valid_metrics.update(met.__name__, met(output, target))
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
-
-        # add histogram of model parameters to the tensorboard
-        for name, p in self.model.named_parameters():
-            self.writer.add_histogram(name, p, bins='auto')
-        return self.valid_metrics.result()
 
     def _progress(self, batch_idx):
         base = '[{}/{} ({:.0f}%)]'
