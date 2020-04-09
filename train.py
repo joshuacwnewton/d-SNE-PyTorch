@@ -13,7 +13,7 @@ from model.networks import LeNetPlus
 from model.loss import CombinedLoss
 from model.metrics import accuracy, top_k_acc
 from pytorch_template import loggers
-from pytorch_template.trainer import Trainer
+from pytorch_template.trainer import DSNETrainer
 from pytorch_template.utils import fix_random_seeds
 
 
@@ -54,7 +54,7 @@ def main(config):
     )
     metrics = [accuracy, top_k_acc]
 
-    trainer = Trainer(
+    trainer = DSNETrainer(
         train_dataloader, model, criterion, metrics, optimizer, logger, writer,
               n_gpu=config["Trainer"].getint("n_gpu"),
              epochs=config["Trainer"].getint("epochs"),

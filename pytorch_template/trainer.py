@@ -176,7 +176,7 @@ class BaseTrainer(metaclass=ABCMeta):
         self.logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))
 
 
-class Trainer(BaseTrainer):
+class DSNETrainer(BaseTrainer):
     """
     Trainer class
     """
@@ -213,6 +213,7 @@ class Trainer(BaseTrainer):
         self.train_metrics.reset()
 
         for batch_idx, (X, y) in enumerate(self.data_loader):
+            # TODO: Keep train step for DSNETrainer, move train epoch to Base
             X = {k: v.to(self.device) for k, v in X.items()}  # Send X to GPU
             y = {k: v.to(self.device) for k, v in y.items()}  # Send y to GPU
 

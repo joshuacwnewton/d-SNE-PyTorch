@@ -3,12 +3,12 @@
 # Third-party imports
 import h5py
 import numpy as np
-from torch.utils import data
+from torch.utils.data import Dataset
 
 # Local application imports
 
 
-class PairDataset(data.Dataset):
+class PairDataset(Dataset):
     """Combined source/target dataset for training using d-SNE.
 
     Attributes
@@ -23,7 +23,7 @@ class PairDataset(data.Dataset):
         Indices for pairs of source/target samples w/o matching labels.
     full_idxs: List of pairs of ints
         Indexes for pairs of source/target samples.
-    transforms : List of PyTorch transforms
+    transform : List of PyTorch transforms
         Pre-processing operations to apply to images when calling
         __getitem__.
 
@@ -64,7 +64,7 @@ class PairDataset(data.Dataset):
         sample_ratio : int
             Ratio between the number of intraclass pairs
             (y_src == y_tgt) to interclass pairs (y_src != y_tgt).
-        transforms : list of PyTorch transforms
+        transform : list of PyTorch transforms
             Preprocessing operations to apply to images when sampling.
         """
         super().__init__()
@@ -150,6 +150,6 @@ class PairDataset(data.Dataset):
         return X, y
 
 
-class SingleDataset(data.Dataset):
-    def __init__(self, data):
+class SingleDataset(Dataset):
+    def __init__(self, src_path):
         pass
