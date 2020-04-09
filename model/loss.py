@@ -11,9 +11,6 @@ class DSNELoss(_Loss):
     margin : float
         Minimum required margin between `min_intraclass_dist` and
         `max_interclass_dist`.
-    fn : Bool
-        Flag for whether to use instance normalization on feature
-        vectors prior to loss calculation.
     reduction : str
         Name of torch function for reducing loss vector to a scalar. Set
         to "mean" by default to mimic CrossEntropyLoss default
@@ -46,12 +43,11 @@ class DSNELoss(_Loss):
             than the margin. Here, loss == abs(difference).
     """
 
-    def __init__(self, margin=1.0, fn=False, reduction="mean"):
+    def __init__(self, margin=1.0, reduction="mean"):
         """Assign parameters as attributes."""
         super(DSNELoss, self).__init__()
 
         self.margin = margin
-        self.fn = fn
 
         if reduction == "mean":
             self.reduce_func = torch.mean
@@ -136,7 +132,7 @@ class CombinedLoss(_WeightedLoss):
         Scale factor for weighted sum of losses.
     """
 
-    def __init__(self, margin=1.0, fn=False, alpha=0.1, reduction="mean"):
+    def __init__(self, margin=1.0, alpha=0.1, reduction="mean"):
         """Create the loss functions to be weighted.
 
         Parameters
@@ -144,9 +140,6 @@ class CombinedLoss(_WeightedLoss):
         margin : float
             Minimum required margin between `min_intraclass_dist` and
             `max_interclass_dist`.
-        fn : Bool
-            Flag for whether to use instance normalization on feature
-            vectors prior to loss calculation.
         alpha : float
             Scale factor for weighted sum of losses.
         reduction : str
@@ -154,7 +147,7 @@ class CombinedLoss(_WeightedLoss):
         """
         super(CombinedLoss, self).__init__()
 
-        self.loss_dsne = DSNELoss(margin, fn, reduction)
+        self.loss_dsne = DSNELoss(margin, reduction)
         self.loss_xent = CrossEntropyLoss(reduction=reduction)
         self.alpha = alpha
 
