@@ -11,13 +11,13 @@ from torchvision.utils import make_grid
 from pytorch_template.utils import inf_loop, MetricTracker
 
 
-class BaseTrainer(metaclass=ABCMeta):
+class DSNETrainer:
     """
     Base class for all trainers
     """
-    def __init__(self, model, criterion, metric_ftns, optimizer, logger,
-                 writer, n_gpu, epochs, save_period, monitor, early_stop,
-                 save_dir, resume=None):
+    def __init__(self, data_loader, model, criterion, metric_ftns, optimizer,
+                 logger, writer, n_gpu, epochs, early_stop,
+                 save_period, monitor, save_dir, len_epoch=None, resume=None):
         self.logger = logger
         self.writer = writer
 
@@ -53,14 +53,21 @@ class BaseTrainer(metaclass=ABCMeta):
         if resume is not None:
             self._resume_checkpoint(resume)
 
-    @abstractmethod
-    def _train_epoch(self, epoch):
-        """
-        Training logic for an epoch
+        self.data_loader = data_loader
+        if len_epoch is None:
+            # epoch-based training
+            self.len_epoch = len(self.data_loader)
+        else:
+            # iteration-based training
+            self.data_loader = inf_loop(data_loader)
+            self.len_epoch = len_epoch
+        self.valid_data_loader = None  # TODO
+        self.do_validation = self.valid_data_loader is not None
+        self.lr_scheduler = None  # TODO
+        self.log_step = int(np.sqrt(data_loader.batch_size))
 
-        :param epoch: Current epoch number
-        """
-        raise NotImplementedError
+        self.train_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
+        self.valid_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
     def train(self):
         """
@@ -174,33 +181,6 @@ class BaseTrainer(metaclass=ABCMeta):
             self.optimizer.load_state_dict(checkpoint['optimizer'])
 
         self.logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))
-
-
-class DSNETrainer(BaseTrainer):
-    """
-    Trainer class
-    """
-    def __init__(self, data_loader, model, criterion, metric_ftns, optimizer,
-                 logger, writer, n_gpu, epochs, early_stop,
-                 save_period, monitor, save_dir, len_epoch=None):
-        super().__init__(model, criterion, metric_ftns, optimizer, logger,
-                         writer, n_gpu, epochs, save_period, monitor,
-                         early_stop, save_dir)
-        self.data_loader = data_loader
-        if len_epoch is None:
-            # epoch-based training
-            self.len_epoch = len(self.data_loader)
-        else:
-            # iteration-based training
-            self.data_loader = inf_loop(data_loader)
-            self.len_epoch = len_epoch
-        self.valid_data_loader = None  # TODO
-        self.do_validation = self.valid_data_loader is not None
-        self.lr_scheduler = None  # TODO
-        self.log_step = int(np.sqrt(data_loader.batch_size))
-
-        self.train_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
-        self.valid_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
     def _train_epoch(self, epoch):
         """
