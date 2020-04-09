@@ -12,6 +12,9 @@ def setup_logging(save_dir, default_level=logging.INFO,
     Setup logging configuration
     """
     save_dir, log_config = Path(save_dir), Path(log_config)
+    if not save_dir.exists():
+        save_dir.mkdir(parents=True)
+
     if log_config.is_file():
         config = read_json(log_config)
         # modify logging paths based on run config
