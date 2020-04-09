@@ -1,7 +1,4 @@
-# Abstract base classes https://docs.python.org/3/library/abc.html
-# Note: Missing ABCMeta, see: https://github.com/victoresque/pytorch-template/issues/70
 from pathlib import Path
-from abc import abstractmethod, ABCMeta
 
 import numpy as np
 from numpy import inf
