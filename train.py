@@ -1,66 +1,83 @@
 # Stdlib imports
-import collections
+import argparse
+import configparser
+from datetime import datetime
+from pathlib import Path
 
 # Third-party imports
-import torch
-import numpy as np
+from torch.optim import SGD
 
 # Local application imports
 from data_loading.dataloaders import get_dsne_dataloaders
 from model.networks import LeNetPlus
 from model.loss import CombinedLoss
-
-# pytorch-template imports
-import argparse
+from model.metrics import accuracy, top_k_acc
 from pytorch_template import loggers
-from pytorch_template.parse_config import ConfigParser
 from pytorch_template.trainer import Trainer
-from model.metric import accuracy, top_k_acc
-from torch.optim import SGD
-# from torch.optim.lr_scheduler import
-
-# Fix random seeds for reproducibility
-SEED = 123
-torch.manual_seed(SEED)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-np.random.seed(SEED)
+from pytorch_template.utils import fix_random_seeds
 
 
 def main(config):
-    loggers.setup_logging(config['trainer']['save_dir'])
-    logger = loggers.get_logger(config['name'])
-    writer = loggers.TensorboardWriter(config.log_dir, logger)
+    fix_random_seeds(123)
 
-    train_dataloader = get_dsne_dataloaders("data_loading/data/mnist.h5",
-                                            "data_loading/data/mnist_m.h5")
-    model = LeNetPlus()
-    criterion = CombinedLoss()
-    metrics = [accuracy, top_k_acc]
+    loggers.setup_logging(save_dir=config['General']['test_dir'])
+    logger = loggers.get_logger(name=config['General']['test_name'])
+    writer = loggers.TensorboardWriter(log_dir=config['General']['test_dir'],
+                                       logger=logger)
+
+    train_dataloader = get_dsne_dataloaders(
+            src_path=config['Datasets']['src_path'],
+            tgt_path=config['Datasets']['tgt_path'],
+             src_num=config['Datasets'].getint('src_num'),
+             tgt_num=config['Datasets'].getint('tgt_num'),
+        sample_ratio=config['Datasets'].getint('sample_ratio'),
+           image_dim=config['Datasets'].getint('image_dim'),
+          batch_size=config['Datasets'].getint('batch_size'),
+             shuffle=config['Datasets'].getboolean('shuffle')
+    )
+    model = LeNetPlus(
+           input_dim=config['Datasets'].getint('image_dim'),
+             classes=config['Model'].getint('classes'),
+        feature_size=config['Model'].getint('feature_size'),
+             dropout=config['Model'].getfloat('dropout')
+    )
+    criterion = CombinedLoss(
+        margin=config['Loss'].getfloat('margin'),
+         alpha=config['Loss'].getfloat('alpha')
+    )
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
-    optimizer = SGD(trainable_params, lr=0.001, weight_decay=0.0001,
-                    momentum=0.9)
+    optimizer = SGD(
+        trainable_params,
+                  lr=config['Optimizer'].getfloat('learning_rate'),
+        weight_decay=config['Optimizer'].getfloat('weight_decay'),
+            momentum=config['Optimizer'].getfloat('momentum')
+    )
+    metrics = [accuracy, top_k_acc]
 
-    trainer = Trainer(model, criterion, metrics, optimizer, logger, writer,
-                      config=config, data_loader=train_dataloader)
+    trainer = Trainer(
+        train_dataloader, model, criterion, metrics, optimizer, logger, writer,
+              n_gpu=config["Trainer"].getint("n_gpu"),
+             epochs=config["Trainer"].getint("epochs"),
+         early_stop=config["Trainer"].getint("early_stop"),
+        save_period=config["Trainer"].getint("save_period"),
+            monitor=config["Trainer"]["monitor"],
+           save_dir=config["General"]["test_dir"]
+    )
     trainer.train()
 
 
 if __name__ == "__main__":
-    args = argparse.ArgumentParser(description='PyTorch Template')
-    args.add_argument('-c', '--config',
-                      default="pytorch_template/config.json", type=str,
-                      help='config file path (default: None)')
-    args.add_argument('-r', '--resume', default=None, type=str,
-                      help='path to latest checkpoint (default: None)')
-    args.add_argument('-d', '--device', default=None, type=str,
-                      help='indices of GPUs to enable (default: all)')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('config_path', help="Path to test configuration file")
+    args = parser.parse_args()
 
-    # custom cli options to modify configuration from default values given in json file.
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
-    options = [
-        CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
-        CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size')
-    ]
-    config = ConfigParser.from_args(args, options)
-    main(config)
+    new_config = configparser.ConfigParser()
+    new_config.read(args.config_path)
+
+    # Generate unique test directory on the fly
+    output_dir = Path(new_config["General"]["output_dir"])
+    test_name = new_config["General"]["test_name"]
+    test_id = datetime.now().strftime(r'%Y-%m-%d_%H-%M-%S')
+    new_config["General"]["test_dir"] = str(output_dir / test_name / test_id)
+
+    main(new_config)

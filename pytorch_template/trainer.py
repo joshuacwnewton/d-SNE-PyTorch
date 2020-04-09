@@ -1,5 +1,6 @@
 # Abstract base classes https://docs.python.org/3/library/abc.html
 # Note: Missing ABCMeta, see: https://github.com/victoresque/pytorch-template/issues/70
+from pathlib import Path
 from abc import abstractmethod, ABCMeta
 
 import numpy as np
@@ -15,13 +16,13 @@ class BaseTrainer(metaclass=ABCMeta):
     Base class for all trainers
     """
     def __init__(self, model, criterion, metric_ftns, optimizer, logger,
-                 writer, config):
-        self.config = config
+                 writer, n_gpu, epochs, save_period, monitor, early_stop,
+                 save_dir, resume=None):
         self.logger = logger
         self.writer = writer
 
         # setup GPU device if available, move model into configured device
-        self.device, device_ids = self._prepare_device(config['n_gpu'])
+        self.device, device_ids = self._prepare_device(n_gpu)
         self.model = model.to(self.device)
         if len(device_ids) > 1:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
@@ -30,10 +31,9 @@ class BaseTrainer(metaclass=ABCMeta):
         self.metric_ftns = metric_ftns
         self.optimizer = optimizer
 
-        cfg_trainer = config['trainer']
-        self.epochs = cfg_trainer['epochs']
-        self.save_period = cfg_trainer['save_period']
-        self.monitor = cfg_trainer.get('monitor', 'off')
+        self.epochs = epochs
+        self.save_period = save_period
+        self.monitor = monitor
 
         # configuration to monitor model performance and save best
         if self.monitor == 'off':
@@ -44,14 +44,14 @@ class BaseTrainer(metaclass=ABCMeta):
             assert self.mnt_mode in ['min', 'max']
 
             self.mnt_best = inf if self.mnt_mode == 'min' else -inf
-            self.early_stop = cfg_trainer.get('early_stop', inf)
+            self.early_stop = early_stop
 
         self.start_epoch = 1
 
-        self.checkpoint_dir = config.save_dir
+        self.checkpoint_dir = Path(save_dir) / "ckpt"
 
-        if config.resume is not None:
-            self._resume_checkpoint(config.resume)
+        if resume is not None:
+            self._resume_checkpoint(resume)
 
     @abstractmethod
     def _train_epoch(self, epoch):
@@ -180,12 +180,12 @@ class Trainer(BaseTrainer):
     """
     Trainer class
     """
-    def __init__(self, model, criterion, metric_ftns, optimizer, logger,
-                 writer, config, data_loader, valid_data_loader=None,
-                 lr_scheduler=None, len_epoch=None):
+    def __init__(self, data_loader, model, criterion, metric_ftns, optimizer,
+                 logger, writer, n_gpu, epochs, early_stop,
+                 save_period, monitor, save_dir, len_epoch=None):
         super().__init__(model, criterion, metric_ftns, optimizer, logger,
-                         writer, config)
-        self.config = config
+                         writer, n_gpu, epochs, save_period, monitor,
+                         early_stop, save_dir)
         self.data_loader = data_loader
         if len_epoch is None:
             # epoch-based training
@@ -194,9 +194,9 @@ class Trainer(BaseTrainer):
             # iteration-based training
             self.data_loader = inf_loop(data_loader)
             self.len_epoch = len_epoch
-        self.valid_data_loader = valid_data_loader
+        self.valid_data_loader = None  # TODO
         self.do_validation = self.valid_data_loader is not None
-        self.lr_scheduler = lr_scheduler
+        self.lr_scheduler = None  # TODO
         self.log_step = int(np.sqrt(data_loader.batch_size))
 
         self.train_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)

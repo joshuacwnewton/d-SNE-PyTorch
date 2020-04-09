@@ -120,13 +120,13 @@ class LeNetPlus(nn.Module):
     https://github.com/aws-samples/d-SNE/issues/13
     """
 
-    def __init__(self, input_dim=(3, 28, 28), classes=10, feature_size=256,
+    def __init__(self, input_dim, classes=10, feature_size=256,
                  dropout=0.5, use_bn=False, use_inn=False):
         """Constructor for the LeNetPlus model architecture.
 
         Parameters
         ----------
-        input_dim : tuple of ints (C, H, W)
+        input_dim : int or tuple of ints (C, H, W)
             Expected dimensions for input images.
         classes : int
             Number of classes which defines the final output dimensions.
@@ -143,7 +143,10 @@ class LeNetPlus(nn.Module):
             the start of the outer level of the network.
         """
         super(LeNetPlus, self).__init__()
-        (D_in, cur_h, cur_w) = input_dim
+        if isinstance(input_dim, int):
+            (D_in, cur_h, cur_w) = (3, input_dim, input_dim)
+        else:
+            (D_in, cur_h, cur_w) = input_dim
 
         layers = []
         if use_inn:

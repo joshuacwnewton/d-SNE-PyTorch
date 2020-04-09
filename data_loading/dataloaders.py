@@ -11,32 +11,23 @@ from torchvision.transforms import (Compose, ToPILImage, ToTensor,
 from data_loading.datasets import PairDataset, SingleDataset
 
 
-def get_dsne_dataloaders(src_path, tgt_path):
-
-    # TODO: Config options found in d-SNE code:
-    #   -DigitDataset
-    #       -TARGET_PATH
-    #   -DigitPairsDataset
-    #       -SOURCE_PATH
-    #       -SOURCE_NUM
-    #       -TARGET_PATH
-    #       -TARGET_NUM
-    #       -SAMPLE_RATIO
-
-    # Pass loaded datasets into Dataset objects
+def get_dsne_dataloaders(src_path, tgt_path, src_num, tgt_num, sample_ratio,
+                         image_dim, batch_size, shuffle):
     transforms = Compose([
         ToPILImage(),
-        Resize(32),
+        Resize(image_dim),
         ToTensor(),
         Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
-    train_dataset = PairDataset(src_path, tgt_path, transform=transforms)
+    train_dataset = PairDataset(src_path, tgt_path, src_num, tgt_num,
+                                sample_ratio, transform=transforms)
 
     # TODO: Implement SingleDataset
     # test_dataset = SingleDataset(data=mnist_m_path)
 
     # Pass Dataset objects to DataLoader objects
-    train_dataloader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size,
+                                  shuffle=shuffle)
     # test_dataloader = DataLoader(test_dataset)
 
     return train_dataloader  #, test_dataloader
