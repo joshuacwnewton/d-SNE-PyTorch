@@ -4,8 +4,8 @@ from pathlib import Path
 from functools import reduce, partial
 from operator import getitem
 from datetime import datetime
-from logger import setup_logging
-from utils import read_json, write_json
+from pytorch_template.logger import setup_logging
+from pytorch_template.utils import read_json, write_json
 
 
 class ConfigParser:

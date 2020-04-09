@@ -10,13 +10,13 @@ import torch
 from torchvision.utils import make_grid
 
 # Basically just SummaryWriter but with checking for utils.TB vs. TBX
-from logger import TensorboardWriter
+from pytorch_template.visualization import TensorboardWriter
 
 # Wrapper function for endless data loader, used if len_epoch not == full data
-from utils import inf_loop
+from pytorch_template.utils import inf_loop
 
 # Class for keeping running average of various metrics, stored in DataFrame
-from utils import MetricTracker
+from pytorch_template.utils import MetricTracker
 
 
 class BaseTrainer(metaclass=ABCMeta):

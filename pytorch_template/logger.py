@@ -1,10 +1,11 @@
 import logging
 import logging.config
 from pathlib import Path
-from utils import read_json
+from pytorch_template.utils import read_json
 
 
-def setup_logging(save_dir, log_config='logger/logger_config.json', default_level=logging.INFO):
+def setup_logging(save_dir, default_level=logging.INFO,
+                  log_config='pytorch_template/logger_config.json'):
     """
     Setup logging configuration
     """
