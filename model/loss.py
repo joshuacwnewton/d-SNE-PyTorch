@@ -31,16 +31,17 @@ class DSNELoss(_Loss):
         Explanation:
             -The minimum interclass distance should be large, as FVs
                 from src/tgt pairs should be as distinct as possible
-                 when their classes are different.
+                when their classes are different.
             -The maximum intraclass distance should be small, as FVs
                 from src/tgt pairs should be as similar as possible
                 when their classes are the same.
-            -Therefore, this condition should be true:
+            -Therefore, these conditions should be true:
                               `min_interclass` >> `max_interclass`
            `min_interclass` - `max_interclass` >> `margin`
 
         4. Calculate loss for cases where the difference is NOT greater
-            than the margin. Here, loss == abs(difference).
+            than the margin, as that would invalidate the conditions
+            above. Here, loss == abs(difference).
     """
 
     def __init__(self, margin=1.0, reduction="mean"):
