@@ -14,6 +14,24 @@ def fix_random_seeds(seed):
     np.random.seed(seed)
 
 
+def prepare_device(n_gpu_requested, logger):
+    """
+    setup GPU device if available, move model into configured device
+    """
+    n_gpu_available = torch.cuda.device_count()
+    if n_gpu_requested > n_gpu_available:
+        logger.warning(f"Warning: {n_gpu_requested} GPUs requested "
+                       f"but only {n_gpu_available} GPUs available."
+                       f"Training on minimum GPUs. (Note: 0 => CPU)")
+        n_gpu_used = n_gpu_available
+    else:
+        n_gpu_used = n_gpu_requested
+
+    device = torch.device('cuda:0' if n_gpu_requested > 0 else 'cpu')
+
+    return device, n_gpu_used
+
+
 def ensure_dir(dirname):
     dirname = Path(dirname)
     if not dirname.is_dir():
