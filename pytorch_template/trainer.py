@@ -132,7 +132,7 @@ class DSNETrainer:
 
             # Print epoch summary to logger
             log = {'epoch': epoch}
-            log.update(self.metric_tracker.summary())
+            log.update(self.metric_tracker.summary)
             for key, value in log.items():
                 self.logger.info('    {:15s}: {}'.format(str(key), value))
 
