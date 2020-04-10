@@ -15,7 +15,7 @@
             }, 
         "info_file_handler": {
             "class": "logging.handlers.RotatingFileHandler", 
-            "level": "INFO", 
+            "level": "INFO",
             "formatter": "datetime", 
             "filename": "info.log", 
             "maxBytes": 10485760, 
