@@ -17,7 +17,10 @@ from numpy import inf
 
 def accuracy(output, target):
     with torch.no_grad():
-        pred = torch.argmax(output, dim=1)
+        if len(output.shape) == 2:
+            pred = torch.argmax(output, dim=1)
+        elif len(output.shape) == 1:
+            pred = output
         assert pred.shape[0] == len(target)
         correct = 0
         correct += torch.sum(pred == target).item()
