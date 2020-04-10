@@ -52,7 +52,11 @@ def main(config):
         weight_decay=config['Optimizer'].getfloat('weight_decay'),
             momentum=config['Optimizer'].getfloat('momentum')
     )
-    metric_tracker = MetricTracker(config['Metrics']['funcs'].split())
+    metric_tracker = MetricTracker(
+            metrics=config["Metrics"]["funcs"].split(),
+        best_metric=config["Metrics"]["best_metric"],
+          best_mode=config["Metrics"]["best_mode"]
+    )
 
     trainer = DSNETrainer(
         train_dataloader, model, criterion, optimizer,
@@ -60,7 +64,7 @@ def main(config):
               n_gpu=config["Trainer"].getint("n_gpu"),
              epochs=config["Trainer"].getint("epochs"),
         save_period=config["Trainer"].getint("save_period"),
-           save_dir=config["General"]["test_dir"]
+           save_dir=config["General"]["test_dir"],
     )
     trainer.train()
 

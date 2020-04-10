@@ -80,7 +80,7 @@ class DSNETrainer:
             'epoch': epoch,
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
-            'best_metric': self.metric_tracker.best,
+            'best_metric': self.metric_tracker.best_val,
         }
 
         filenames = [self.checkpoint_dir / f'checkpoint-epoch{epoch}.pth']
@@ -118,7 +118,7 @@ class DSNETrainer:
         self.model.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.start_epoch = checkpoint['epoch'] + 1
-        self.metric_tracker.best = checkpoint['best_metric']
+        self.metric_tracker.best_val = checkpoint['best_metric']
 
         self.logger.info(f"Checkpoint loaded. Resuming training from "
                          f"epoch {self.start_epoch}...")

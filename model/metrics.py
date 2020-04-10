@@ -35,60 +35,57 @@ def top_k_acc(output, target, k=3):
 
 
 class MetricTracker:
-    def __init__(self, metrics, stop_count=None, stop_mode=None,
-                 stop_metric=None, writer=None):
+    def __init__(self, metrics, best_metric, best_mode, early_stop=None,
+                 writer=None):
         for metric in metrics:
             if not (metric in globals().keys() or metric == 'loss'):
-                raise ValueError(f"{metric} not an available function")
+                raise ValueError(f"{metric} not an available metric function")
+        if best_metric not in metrics:
+            raise ValueError(f"{best_metric} not one of tracked metrics.")
+        if best_mode.lower() not in ['min', 'max']:
+            raise ValueError("Mode for 'best' metric must be 'min' or 'max'.")
+
         self.metrics = metrics
-
-        # Validate and set parameters for early stopping
-        self.best = 0
-        if stop_count or stop_mode or stop_metric:
-            if not stop_count and stop_mode and stop_metric:
-                raise ValueError("Stop_epoch, stop_mode, and stop_metric must"
-                                 "all be provided to use early stopping.")
-            if stop_mode.lower() not in ['min', 'max']:
-                raise ValueError("Stop_mode must be 'min' or 'max'.")
-            if stop_metric not in metrics:
-                raise ValueError(f"{stop_metric} not one of passed metrics.")
-
-            self.best = inf if stop_mode == 'min' else -inf
-        self.stop_mode = stop_mode
-        self.stop_metric = stop_metric
-        self.stop_count = stop_count
-        self.improved = False
-        self.not_improved_count = 0
-
         self._data = pd.DataFrame(index=metrics,
                                   columns=['total', 'counts', 'average'])
         self.writer = writer
+
+        # Attributes for checking whether a model has improved
+        self.best_metric = best_metric
+        self.best_mode = best_mode
+        self.best_val = inf if best_mode == 'min' else -inf
+        self.best_flag = False
+
+        # Attributes for early stopping
+        self.early_stop_count = early_stop
+        self.not_improved_count = 0
+
         self.reset()
 
     @property
-    def early_stop(self):
+    def stop_early(self):
         self.check_if_improved()
-        if self.stop_count:
-            early_stop = self.not_improved_count >= self.stop_count
+        if self.early_stop_count:
+            stop_early = (self.not_improved_count >= self.early_stop_count)
         else:
-            early_stop = False
+            stop_early = False
 
-        return early_stop
+        return stop_early
 
     def check_if_improved(self):
-        new_avg = self.avg(self.stop_metric)
+        new_avg = self.avg(self.best_metric)
 
-        if new_avg == self.best:
+        if new_avg == self.best_val:
             pass  # No change, do nothing
-        elif ((self.stop_mode == 'min' and new_avg < self.best) or
-              (self.stop_mode == 'max' and new_avg > self.best)):
+        elif ((self.best_mode == 'min' and new_avg < self.best_val) or
+              (self.best_mode == 'max' and new_avg > self.best_val)):
             self.not_improved_count = 0
-            self.improved = True
+            self.best_flag = True
         else:
             self.not_improved_count += 1
-            self.improved = False
+            self.best_flag = False
 
-        return self.improved
+        return self.best_flag
 
     @property
     def summary(self):
