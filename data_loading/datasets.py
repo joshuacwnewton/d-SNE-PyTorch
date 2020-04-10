@@ -151,5 +151,17 @@ class PairDataset(Dataset):
 
 
 class SingleDataset(Dataset):
-    def __init__(self, src_path):
-        pass
+    def __init__(self, tgt_path, transform):
+        super().__init__()
+        self.transform = transform
+
+        with h5py.File(tgt_path, "r") as f_t:
+            # Read datasets from HDF5 file pointers
+            self.X = f_t["X_te"][()]
+            self.y = f_t["y_te"][()]
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.transform(self.X[idx]), self.y[idx]

@@ -19,15 +19,13 @@ def get_dsne_dataloaders(src_path, tgt_path, src_num, tgt_num, sample_ratio,
         ToTensor(),
         Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
+
     train_dataset = PairDataset(src_path, tgt_path, src_num, tgt_num,
                                 sample_ratio, transform=transforms)
+    test_dataset = SingleDataset(tgt_path, transform=transforms)
 
-    # TODO: Implement SingleDataset
-    # test_dataset = SingleDataset(data=mnist_m_path)
-
-    # Pass Dataset objects to DataLoader objects
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size,
                                   shuffle=shuffle)
-    # test_dataloader = DataLoader(test_dataset)
+    test_dataloader = DataLoader(test_dataset)
 
-    return train_dataloader  #, test_dataloader
+    return train_dataloader, test_dataloader
