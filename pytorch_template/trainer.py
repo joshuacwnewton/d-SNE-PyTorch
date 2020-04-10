@@ -1,20 +1,19 @@
 from pathlib import Path
 
 import numpy as np
-from numpy import inf
 import torch
 from torchvision.utils import make_grid
 
-from pytorch_template.utils import inf_loop, MetricTracker
+from pytorch_template.utils import inf_loop
 
 
 class DSNETrainer:
     """
     Base class for all trainers
     """
-    def __init__(self, data_loader, model, criterion, metric_ftns, optimizer,
-                 logger, writer, n_gpu, epochs, save_period, save_dir,
-                 early_stop, monitor='off', len_epoch=None, resume=None):
+    def __init__(self, data_loader, model, criterion, optimizer,
+                 metric_tracker, logger, writer, n_gpu, epochs, save_period,
+                 save_dir, len_epoch=None, resume=None):
         # Set logging functions
         self.logger = logger
         self.log_step = int(np.sqrt(data_loader.batch_size))
@@ -32,6 +31,7 @@ class DSNETrainer:
         self.data_loader = data_loader
         self.criterion = criterion
         self.optimizer = optimizer
+        self.metric_tracker = metric_tracker
 
         # Set config for duration of training
         self.start_epoch = 1
@@ -41,20 +41,6 @@ class DSNETrainer:
         else:
             self.data_loader = inf_loop(data_loader)
             self.len_epoch = len_epoch
-
-        # Set config for monitoring evaluation metrics
-        if monitor == 'off':
-            self.mnt_mode = 'off'
-            self.mnt_best = 0
-        else:
-            self.mnt_mode, self.mnt_metric = monitor.split()
-            assert self.mnt_mode in ['min', 'max']
-            self.mnt_best = inf if self.mnt_mode == 'min' else -inf
-            self.early_stop = early_stop
-        self.metric_ftns = metric_ftns
-        self.train_metrics = MetricTracker('loss',
-                                           *[m.__name__ for m in metric_ftns],
-                                           writer=self.writer)
 
         # Set config for saving/reloading checkpoints
         self.save_period = save_period
@@ -93,7 +79,7 @@ class DSNETrainer:
             'epoch': epoch,
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
-            'monitor_best': self.mnt_best,
+            'best_metric': self.metric_tracker.best,
         }
 
         filenames = [self.checkpoint_dir / f'checkpoint-epoch{epoch}.pth']
@@ -131,7 +117,7 @@ class DSNETrainer:
         self.model.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.start_epoch = checkpoint['epoch'] + 1
-        self.mnt_best = checkpoint['monitor_best']
+        self.metric_tracker.best = checkpoint['best_metric']
 
         self.logger.info(f"Checkpoint loaded. Resuming training from "
                          f"epoch {self.start_epoch}...")
@@ -140,42 +126,14 @@ class DSNETrainer:
         """
         Full training logic
         """
-        not_improved_count = 0
         for epoch in range(self.start_epoch, self.epochs + 1):
-            result = self._train_epoch(epoch)
+            best = self._train_epoch(epoch)
 
-            # save logged informations into log dict
+            # Print epoch summary to logger
             log = {'epoch': epoch}
-            log.update(result)
-
-            # print logged informations to the screen
+            log.update(self.metric_tracker.summary())
             for key, value in log.items():
                 self.logger.info('    {:15s}: {}'.format(str(key), value))
-
-            # evaluate model performance according to configured metric, save best checkpoint as model_best
-            best = False
-            if self.mnt_mode != 'off':
-                try:
-                    # check whether model performance improved or not, according to specified metric(mnt_metric)
-                    improved = (self.mnt_mode == 'min' and log[self.mnt_metric] <= self.mnt_best) or \
-                               (self.mnt_mode == 'max' and log[self.mnt_metric] >= self.mnt_best)
-                except KeyError:
-                    self.logger.warning("Warning: Metric '{}' is not found. "
-                                        "Model performance monitoring is disabled.".format(self.mnt_metric))
-                    self.mnt_mode = 'off'
-                    improved = False
-
-                if improved:
-                    self.mnt_best = log[self.mnt_metric]
-                    not_improved_count = 0
-                    best = True
-                else:
-                    not_improved_count += 1
-
-                if not_improved_count > self.early_stop:
-                    self.logger.info("Validation performance didn\'t improve for {} epochs. "
-                                     "Training stops.".format(self.early_stop))
-                    break
 
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch, save_best=best)
@@ -188,7 +146,7 @@ class DSNETrainer:
         :return: A log that contains average loss and metric in this epoch.
         """
         self.model.train()
-        self.train_metrics.reset()
+        self.metric_tracker.reset()
 
         for batch_idx, (X, y) in enumerate(self.data_loader):
             # TODO: Keep train step for DSNETrainer, move train epoch to Base
@@ -209,22 +167,23 @@ class DSNETrainer:
                 self.optimizer.step()
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
-            self.train_metrics.update('loss', loss.item())
-            # for met in self.metric_ftns:
-            #     self.train_metrics.update(met.__name__, met(output, target))
+            self.metric_tracker.update(loss.item(), y_pred['src'], y['src'])
 
             if batch_idx % self.log_step == 0:
-                self.logger.debug('Train Epoch: {} {} Loss: {:.6f}'.format(
-                    epoch,
-                    self._progress(batch_idx),
-                    loss.item()))
-                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
-
+                self.logger.debug(
+                    f"Train Epoch: {epoch} {self._progress(batch_idx)}"
+                    f" Loss: {loss.item():.6f}"
+                    f" Accuracy: {self.metric_tracker.avg('accuracy'):.4f}")
+                self.writer.add_image('source', make_grid(X['src'].cpu(),
+                                                          nrow=8,
+                                                          normalize=True))
+                self.writer.add_image('target', make_grid(X['tgt'].cpu(),
+                                                          nrow=8,
+                                                          normalize=True))
             if batch_idx == self.len_epoch:
                 break
-        log = self.train_metrics.result()
 
-        return log
+        return self.metric_tracker.check_if_improved()
 
     def _progress(self, batch_idx):
         base = '[{}/{} ({:.0f}%)]'

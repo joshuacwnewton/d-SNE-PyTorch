@@ -11,7 +11,7 @@ from torch.optim import SGD
 from data_loading.dataloaders import get_dsne_dataloaders
 from model.networks import LeNetPlus
 from model.loss import CombinedLoss
-from model.metrics import accuracy, top_k_acc
+from model.metrics import MetricTracker
 from pytorch_template import loggers
 from pytorch_template.trainer import DSNETrainer
 from pytorch_template.utils import fix_random_seeds
@@ -52,15 +52,14 @@ def main(config):
         weight_decay=config['Optimizer'].getfloat('weight_decay'),
             momentum=config['Optimizer'].getfloat('momentum')
     )
-    metrics = [accuracy, top_k_acc]
+    metric_tracker = MetricTracker(config['Metrics']['funcs'].split())
 
     trainer = DSNETrainer(
-        train_dataloader, model, criterion, metrics, optimizer, logger, writer,
+        train_dataloader, model, criterion, optimizer,
+        metric_tracker, logger, writer,
               n_gpu=config["Trainer"].getint("n_gpu"),
              epochs=config["Trainer"].getint("epochs"),
-         early_stop=config["Trainer"].getint("early_stop"),
         save_period=config["Trainer"].getint("save_period"),
-            monitor=config["Trainer"]["monitor"],
            save_dir=config["General"]["test_dir"]
     )
     trainer.train()
