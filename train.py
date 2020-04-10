@@ -14,7 +14,7 @@ from model.loss import CombinedLoss
 from model.metrics import MetricTracker
 from pytorch_template import loggers
 from pytorch_template.trainer import DSNETrainer
-from pytorch_template.utils import fix_random_seeds
+from pytorch_template.utils import (fix_random_seeds, prepare_device)
 
 
 def main(config):
@@ -24,6 +24,8 @@ def main(config):
     logger = loggers.get_logger(name=config['General']['test_name'])
     writer = loggers.TensorboardWriter(log_dir=config['General']['test_dir'],
                                        logger=logger)
+
+    device, n_gpu = prepare_device(config["General"].getint("n_gpu"), logger)
 
     train_dataloader = get_dsne_dataloaders(
             src_path=config['Datasets']['src_path'],
@@ -60,10 +62,9 @@ def main(config):
 
     trainer = DSNETrainer(
         train_dataloader, model, criterion, optimizer,
-        metric_tracker, logger, writer,
-              n_gpu=config["Trainer"].getint("n_gpu"),
-             epochs=config["Trainer"].getint("epochs"),
-        save_period=config["Trainer"].getint("save_period"),
+        metric_tracker, logger, writer, device,
+             epochs=config["Training"].getint("epochs"),
+        save_period=config["Training"].getint("save_period"),
            save_dir=config["General"]["test_dir"],
     )
     trainer.train()

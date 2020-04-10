@@ -12,20 +12,16 @@ class DSNETrainer:
     Base class for all trainers
     """
     def __init__(self, data_loader, model, criterion, optimizer,
-                 metric_tracker, logger, writer, n_gpu, epochs, save_period,
-                 save_dir, len_epoch=None, resume=None):
+                 metric_tracker, logger, writer, device, epochs,
+                 save_period, save_dir, len_epoch=None, resume=None):
         # Set logging functions
         self.logger = logger
         self.log_step = int(np.sqrt(data_loader.batch_size))
         self.writer = writer
 
         # Set device configuration (CPU/GPU) then move model to device
-        self.n_gpu_used = self._prepare_device(n_gpu)
+        self.device = device
         self.model = model.to(self.device)
-        if self.n_gpu_used > 1:
-            self.model = torch.nn.DataParallel(
-                model, device_ids=list(range(self.n_gpu_used))
-            )
 
         # Set remaining core objects needed for training
         self.data_loader = data_loader
@@ -48,23 +44,6 @@ class DSNETrainer:
         self.checkpoint_dir.mkdir()
         if resume is not None:
             self._resume_checkpoint(resume)
-
-    def _prepare_device(self, n_gpu_requested):
-        """
-        setup GPU device if available, move model into configured device
-        """
-        n_gpu_available = torch.cuda.device_count()
-        if n_gpu_requested > n_gpu_available:
-            self.logger.warning(f"Warning: {n_gpu_requested} GPUs requested "
-                                f"but only {n_gpu_available} GPUs available."
-                                f"Training on minimum GPUs. (Note: 0 => CPU)")
-            n_gpu_used = n_gpu_available
-        else:
-            n_gpu_used = n_gpu_requested
-
-        self.device = torch.device('cuda:0' if n_gpu_requested > 0 else 'cpu')
-
-        return n_gpu_used
 
     def _save_checkpoint(self, epoch, save_best=False):
         """
