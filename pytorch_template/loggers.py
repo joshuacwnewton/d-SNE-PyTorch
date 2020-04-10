@@ -47,7 +47,8 @@ class TensorboardWriter:
         self.selected_module = ""
 
         if enabled:
-            log_dir = str(log_dir)
+            log_dir = Path(log_dir) / "tensorboard"
+            log_dir.mkdir(parents=True)
 
             # Retrieve vizualization writer.
             succeeded = False

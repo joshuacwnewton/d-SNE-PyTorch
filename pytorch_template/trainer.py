@@ -45,6 +45,7 @@ class DSNETrainer:
         # Set config for saving/reloading checkpoints
         self.save_period = save_period
         self.checkpoint_dir = Path(save_dir) / "ckpt"
+        self.checkpoint_dir.mkdir()
         if resume is not None:
             self._resume_checkpoint(resume)
 
