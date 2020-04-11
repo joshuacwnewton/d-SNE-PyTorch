@@ -13,7 +13,7 @@ from dsne_pytorch.model.networks import LeNetPlus
 from dsne_pytorch.model.loss import CombinedLoss
 from dsne_pytorch.model.metrics import MetricTracker
 from dsne_pytorch import loggers
-from dsne_pytorch.agents import DSNETrainer, Tester
+from dsne_pytorch.agents import Trainer, Tester
 from dsne_pytorch.utils import (fix_random_seeds, prepare_device,
                                 get_latest_model)
 
@@ -25,7 +25,7 @@ def main(args, config):
                                    objs["logger"])
 
     if args.train:
-        trainer = DSNETrainer(
+        trainer = Trainer(
                data_loader=objs["train_loader"],
                      model=objs["model"],
                  criterion=objs["criterion"],

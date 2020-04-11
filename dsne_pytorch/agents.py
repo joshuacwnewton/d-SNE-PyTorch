@@ -7,7 +7,7 @@ from torchvision.utils import make_grid
 from dsne_pytorch.data_loading.dataloaders import InfLoader
 
 
-class DSNETrainer:
+class Trainer:
     """
     Base class for all trainers
     """
