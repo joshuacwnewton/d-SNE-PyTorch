@@ -148,7 +148,9 @@ class DSNETrainer:
                 self.optimizer.step()
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
-            self.metric_tracker.update(loss.item(), y_pred['src'], y['src'])
+            self.metric_tracker.update(y_pred['src'], y['src'],
+                                       loss=loss.item(),
+                                       n=self.data_loader.batch_size)
 
             if batch_idx % self.log_step == 0:
                 self.logger.debug(
