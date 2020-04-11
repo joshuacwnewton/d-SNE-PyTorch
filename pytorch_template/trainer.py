@@ -177,3 +177,35 @@ class DSNETrainer:
             current = batch_idx
             total = self.len_epoch
         return base.format(current, total, 100.0 * current / total)
+
+
+class Tester:
+    def __init__(self, data_loader, model, ckpt_path, metric_tracker,
+                 device, logger):
+        self.device = device
+
+        self.data_loader = data_loader
+
+        self.ckpt_path = ckpt_path
+        self.ckpt_dict = torch.load(ckpt_path)
+        model.load_state_dict(self.ckpt_dict["state_dict"])
+        self.model = model.to(self.device).eval()
+
+        self.metric_tracker = metric_tracker
+        self.metric_tracker.reset()
+
+        self.logger = logger
+
+    def test(self):
+        with torch.no_grad():
+            for X, y in self.data_loader:
+                X = X.to(self.device)
+                y = y.to(self.device)
+
+                features, output = self.model(X)
+                self.metric_tracker.update(output, y)
+
+        log = {'mode': 'test'}
+        log.update(self.metric_tracker.summary)
+        for key, value in log.items():
+            self.logger.info('    {:15s}: {}'.format(str(key), value))
