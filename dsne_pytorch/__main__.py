@@ -7,6 +7,7 @@
 # TODO: Switch to ExtendedInterpolation in configparsing
 # TODO: Move "save_dir" from "General" category to "Training" category
 # TODO: Add argparsing for cfg
+# TODO: Copy cfg to exec directory if no config passed ("you should edit!")
 
 # Stdlib imports
 import os
