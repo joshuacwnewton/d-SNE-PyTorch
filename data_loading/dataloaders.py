@@ -26,6 +26,6 @@ def get_dsne_dataloaders(src_path, tgt_path, src_num, tgt_num, sample_ratio,
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size,
                                   shuffle=shuffle)
-    test_dataloader = DataLoader(test_dataset)
+    test_dataloader = DataLoader(test_dataset, shuffle=shuffle)
 
     return train_dataloader, test_dataloader
