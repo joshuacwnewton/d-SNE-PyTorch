@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 def setup_logging(save_dir, default_level=logging.INFO,
-                  log_config='pytorch_template/logger_config.json'):
+                  log_config='configs/logger_config.json'):
     """
     Setup logging configuration
     """
