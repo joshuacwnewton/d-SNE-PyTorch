@@ -13,7 +13,7 @@ setup(
         "h5py",
         "numpy",
         "pandas",
-        "python-opencv",
+        "opencv-python",
         "torch",
         "torchvision",
         "tensorboard"
