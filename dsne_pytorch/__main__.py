@@ -19,7 +19,26 @@ from dsne_pytorch.utils import (fix_random_seeds, prepare_device,
                                 get_latest_model)
 
 
-def main(args, config):
+def main():
+    # Ensure current working directory is dsne_pytorch/
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('config_path', help="Path to test configuration file")
+    parser.add_argument('--train', action="store_true", help="Training flag")
+    parser.add_argument('--test', action="store_true", help="Testing flag")
+    args = parser.parse_args()
+
+    config = configparser.ConfigParser()
+    config.read(args.config_path)
+
+    # Generate paths for unique experiment directories/files using current time
+    output_dir = Path(config["General"]["output_dir"])
+    test_type = config["General"]["test_name"]
+    test_id = datetime.now().strftime(r'%Y-%m-%d_%H-%M-%S')
+    config["General"]["test_type_dir"] = str(output_dir / test_type)
+    config["General"]["test_dir"] = str(output_dir / test_type / test_id)
+
     fix_random_seeds(123)
     objs = init_objects(config)
     device, n_gpu = prepare_device(config["General"].getint("n_gpu"),
@@ -44,6 +63,11 @@ def main(args, config):
         trainer.train()
 
     if args.test:
+        if "ckpt" not in config["Testing"]:
+            config["Testing"]["ckpt"] = get_latest_model(
+                config["General"]["test_type_dir"], "model_best.pth"
+            )
+
         tester = Tester(
                data_loader=objs["test_loader"],
                      model=objs["model"],
@@ -108,30 +132,5 @@ def init_objects(config):
 
 
 if __name__ == "__main__":
-    # Ensure current working directory is dsne_pytorch/
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('config_path', help="Path to test configuration file")
-    parser.add_argument('--train', action="store_true", help="Training flag")
-    parser.add_argument('--test', action="store_true", help="Testing flag")
-    args = parser.parse_args()
-
-    config = configparser.ConfigParser()
-    config.read(args.config_path)
-
-    # Generate paths for unique experiment directories/files using current time
-    output_dir = Path(config["General"]["output_dir"])
-    test_type = config["General"]["test_name"]
-    test_id = datetime.now().strftime(r'%Y-%m-%d_%H-%M-%S')
-
-    config["General"]["test_type_dir"] = str(output_dir / test_type)
-    config["General"]["test_dir"] = str(output_dir / test_type / test_id)
-
-    if "ckpt" not in config["Testing"]:
-        config["Testing"]["ckpt"] = get_latest_model(
-            config["General"]["test_type_dir"], "model_best.pth"
-    )
-
-    main(args, config)
+    main()
 
