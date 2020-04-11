@@ -1,7 +1,8 @@
+import os
 import json
 from pathlib import Path
-from itertools import repeat
 from collections import OrderedDict
+import glob
 
 import numpy as np
 import torch
@@ -50,7 +51,8 @@ def write_json(content, fname):
         json.dump(content, handle, indent=4, sort_keys=False)
 
 
-def inf_loop(data_loader):
-    ''' wrapper function for endless data loader. '''
-    for loader in repeat(data_loader):
-        yield from loader
+def get_latest_model(save_dir, model_name):
+    list_of_files = glob.glob(f"{save_dir}/**/{model_name}", recursive=True)
+    latest_file = max(list_of_files, key=os.path.getctime)
+
+    return latest_file
