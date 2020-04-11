@@ -1,3 +1,13 @@
+"""
+    Docstring for d-SNE PyTorch....
+"""
+
+# TODO: Write missing docstrings (main, agents, loggers, utils, metrics)
+# TODO: Modify config to interpolate resize_dim from input_dim
+# TODO: Switch to ExtendedInterpolation in configparsing
+# TODO: Move "save_dir" from "General" category to "Training" category
+# TODO: Add argparsing for cfg
+
 # Stdlib imports
 import os
 import argparse
