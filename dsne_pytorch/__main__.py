@@ -1,4 +1,5 @@
 # Stdlib imports
+import os
 import argparse
 import configparser
 from datetime import datetime
@@ -107,6 +108,9 @@ def init_objects(config):
 
 
 if __name__ == "__main__":
+    # Ensure current working directory is dsne_pytorch/
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
     parser = argparse.ArgumentParser()
     parser.add_argument('config_path', help="Path to test configuration file")
     parser.add_argument('--train', action="store_true", help="Training flag")
