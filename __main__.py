@@ -14,7 +14,7 @@ from model.networks import LeNetPlus
 from model.loss import CombinedLoss
 from model.metrics import MetricTracker
 from pytorch_template import loggers
-from pytorch_template.trainer import DSNETrainer, Tester
+from pytorch_template.agents import DSNETrainer, Tester
 from pytorch_template.utils import (fix_random_seeds, prepare_device,
                                     get_latest_model)
 
