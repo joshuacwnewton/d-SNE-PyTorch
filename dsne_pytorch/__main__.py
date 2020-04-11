@@ -77,30 +77,30 @@ def init_objects(config):
     )
 
     objs["model"] = LeNetPlus(
-        input_dim=config['Datasets'].getint('image_dim'),
-        classes=config['Model'].getint('classes'),
+           input_dim=config['Datasets'].getint('image_dim'),
+             classes=config['Model'].getint('classes'),
         feature_size=config['Model'].getint('feature_size'),
-        dropout=config['Model'].getfloat('dropout')
+             dropout=config['Model'].getfloat('dropout')
     )
 
     objs["metric_tracker"] = MetricTracker(
-        metrics=config["Metrics"]["funcs"].split(),
+            metrics=config["Metrics"]["funcs"].split(),
         best_metric=config["Metrics"]["best_metric"],
-        best_mode=config["Metrics"]["best_mode"]
+          best_mode=config["Metrics"]["best_mode"]
     )
 
     objs["criterion"] = CombinedLoss(
         margin=config['Loss'].getfloat('margin'),
-        alpha=config['Loss'].getfloat('alpha')
+         alpha=config['Loss'].getfloat('alpha')
     )
 
     trainable_params = filter(lambda p: p.requires_grad,
                               objs["model"].parameters())
     objs["optimizer"] = SGD(
         trainable_params,
-        lr=config['Optimizer'].getfloat('learning_rate'),
+                  lr=config['Optimizer'].getfloat('learning_rate'),
         weight_decay=config['Optimizer'].getfloat('weight_decay'),
-        momentum=config['Optimizer'].getfloat('momentum')
+            momentum=config['Optimizer'].getfloat('momentum')
     )
 
     return objs
