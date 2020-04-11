@@ -96,7 +96,7 @@ class MetricTracker:
     def avg(self, key):
         return self._data.average[key]
 
-    def update(self, loss, y_pred, y, n=1):
+    def update(self, y_pred, y, loss=0, n=1):
         for metric in self.metrics:
             if metric == 'loss':
                 value = loss
