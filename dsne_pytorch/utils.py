@@ -53,6 +53,9 @@ def write_json(content, fname):
 
 def get_latest_model(save_dir, model_name):
     list_of_files = glob.glob(f"{save_dir}/**/{model_name}", recursive=True)
-    latest_file = max(list_of_files, key=os.path.getctime)
+    if len(list_of_files) > 0:
+        latest_file = max(list_of_files, key=os.path.getctime)
+    else:
+        raise FileNotFoundError(f"No files called {model_name} in {save_dir}.")
 
     return latest_file
