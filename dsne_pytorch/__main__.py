@@ -20,15 +20,52 @@ from dsne_pytorch.utils import (fix_random_seeds, prepare_device,
 
 def main(args, config):
     fix_random_seeds(123)
+    objs = init_objects(config)
+    device, n_gpu = prepare_device(config["General"].getint("n_gpu"),
+                                   objs["logger"])
+
+    if args.train:
+        trainer = DSNETrainer(
+               data_loader=objs["train_loader"],
+                     model=objs["model"],
+                 criterion=objs["criterion"],
+                 optimizer=objs["optimizer"],
+            metric_tracker=objs["metric_tracker"],
+                    logger=objs["logger"],
+                    writer=objs["writer"],
+                    device=device,
+                    epochs=config["Training"].getint("epochs"),
+                 len_epoch=config["Training"].getint("len_epoch"),
+               save_period=config["Training"].getint("save_period"),
+                  save_dir=config["General"]["test_dir"],
+                    resume=config["Training"].get("resume")
+        )
+        trainer.train()
+
+    if args.test:
+        tester = Tester(
+               data_loader=objs["train_loader"],
+                     model=objs["model"],
+            metric_tracker=objs["metric_tracker"],
+                    logger=objs["logger"],
+                    device=device,
+                 ckpt_path=config["Testing"]["ckpt"]
+        )
+        tester.test()
+
+
+def init_objects(config):
+    """Initialize objects which perform various ML duties."""
+    objs = {}
 
     loggers.setup_logging(save_dir=config['General']['test_dir'])
-    logger = loggers.get_logger(name=config['General']['test_name'])
-    writer = loggers.TensorboardWriter(log_dir=config['General']['test_dir'],
-                                       logger=logger)
+    objs["logger"] = loggers.get_logger(name=config['General']['test_name'])
+    objs["writer"] = loggers.TensorboardWriter(
+        log_dir=config['General']['test_dir'],
+         logger=objs["logger"]
+    )
 
-    device, n_gpu = prepare_device(config["General"].getint("n_gpu"), logger)
-
-    train_dataloader, test_dataloader = get_dsne_dataloaders(
+    objs["train_loader"], objs["test_loader"] = get_dsne_dataloaders(
             src_path=config['Datasets']['src_path'],
             tgt_path=config['Datasets']['tgt_path'],
              src_num=config['Datasets'].getint('src_num'),
@@ -39,55 +76,34 @@ def main(args, config):
              shuffle=config['Datasets'].getboolean('shuffle')
     )
 
-    model = LeNetPlus(
+    objs["model"] = LeNetPlus(
         input_dim=config['Datasets'].getint('image_dim'),
         classes=config['Model'].getint('classes'),
         feature_size=config['Model'].getint('feature_size'),
         dropout=config['Model'].getfloat('dropout')
     )
 
-    metric_tracker = MetricTracker(
+    objs["metric_tracker"] = MetricTracker(
         metrics=config["Metrics"]["funcs"].split(),
         best_metric=config["Metrics"]["best_metric"],
         best_mode=config["Metrics"]["best_mode"]
     )
 
-    if args.train:
-        criterion = CombinedLoss(
-            margin=config['Loss'].getfloat('margin'),
-             alpha=config['Loss'].getfloat('alpha')
-        )
+    objs["criterion"] = CombinedLoss(
+        margin=config['Loss'].getfloat('margin'),
+        alpha=config['Loss'].getfloat('alpha')
+    )
 
-        trainable_params = filter(lambda p: p.requires_grad,
-                                  model.parameters())
-        optimizer = SGD(
-            trainable_params,
-                      lr=config['Optimizer'].getfloat('learning_rate'),
-            weight_decay=config['Optimizer'].getfloat('weight_decay'),
-                momentum=config['Optimizer'].getfloat('momentum')
-        )
+    trainable_params = filter(lambda p: p.requires_grad,
+                              objs["model"].parameters())
+    objs["optimizer"] = SGD(
+        trainable_params,
+        lr=config['Optimizer'].getfloat('learning_rate'),
+        weight_decay=config['Optimizer'].getfloat('weight_decay'),
+        momentum=config['Optimizer'].getfloat('momentum')
+    )
 
-        trainer = DSNETrainer(
-            train_dataloader, model, criterion, optimizer,
-            metric_tracker, logger, writer, device,
-                 epochs=config["Training"].getint("epochs"),
-              len_epoch=config["Training"].getint("len_epoch"),
-            save_period=config["Training"].getint("save_period"),
-               save_dir=config["General"]["test_dir"],
-                 resume=config["Training"].get("resume")
-        )
-        trainer.train()
-
-    if args.test:
-        ckpt_path = config["Testing"].get(
-            "ckpt",  # Or, get latest model if "ckpt" not in config
-            get_latest_model(config["General"]["test_type_dir"],
-                             "model_best.pth")
-        )
-
-        tester = Tester(test_dataloader, model, ckpt_path, metric_tracker,
-                        device, logger)
-        tester.test()
+    return objs
 
 
 if __name__ == "__main__":
@@ -100,12 +116,18 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(args.config_path)
 
-    # Generate unique test directories on the fly
+    # Generate paths for unique experiment directories/files using current time
     output_dir = Path(config["General"]["output_dir"])
     test_type = config["General"]["test_name"]
     test_id = datetime.now().strftime(r'%Y-%m-%d_%H-%M-%S')
+
     config["General"]["test_type_dir"] = str(output_dir / test_type)
     config["General"]["test_dir"] = str(output_dir / test_type / test_id)
+
+    if "ckpt" not in config["Testing"]:
+        config["Testing"]["ckpt"] = get_latest_model(
+            config["General"]["test_type_dir"], "model_best.pth"
+    )
 
     main(args, config)
 
