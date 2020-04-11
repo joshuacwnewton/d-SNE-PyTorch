@@ -9,7 +9,7 @@ from torchvision.transforms import (Compose, ToPILImage, ToTensor,
                                     Resize, Normalize)
 
 # Local application imports
-from data_loading.datasets import PairDataset, SingleDataset
+from dsne_pytorch.data_loading.datasets import PairDataset, SingleDataset
 
 
 def get_dsne_dataloaders(src_path, tgt_path, src_num, tgt_num, sample_ratio,

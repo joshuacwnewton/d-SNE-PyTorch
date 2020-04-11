@@ -197,7 +197,7 @@ _build
 *.pdf
 
 # d-SNE data directory
-data_loading/data
+dsne_pytorch/data_loading/data
 
 # d-SNE logging directory
 saved

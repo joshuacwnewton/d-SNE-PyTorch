@@ -1,7 +1,7 @@
 import logging
 import logging.config
 from pathlib import Path
-from pytorch_template.utils import read_json
+from dsne_pytorch.utils import read_json
 import importlib
 from datetime import datetime
 

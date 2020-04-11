@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torchvision.utils import make_grid
 
-from data_loading.dataloaders import InfLoader
+from dsne_pytorch.data_loading.dataloaders import InfLoader
 
 
 class DSNETrainer:
