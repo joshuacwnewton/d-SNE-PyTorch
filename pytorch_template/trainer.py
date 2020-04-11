@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torchvision.utils import make_grid
 
-from pytorch_template.utils import inf_loop
+from data_loading.dataloaders import InfLoader
 
 
 class DSNETrainer:
@@ -35,7 +35,8 @@ class DSNETrainer:
         if len_epoch is None:
             self.len_epoch = len(self.data_loader)
         else:
-            self.data_loader = inf_loop(data_loader)
+            self.data_loader = InfLoader(data_loader)
+
             self.len_epoch = len_epoch
 
         # Set config for saving/reloading checkpoints

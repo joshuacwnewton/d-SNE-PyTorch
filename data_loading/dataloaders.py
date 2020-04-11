@@ -1,6 +1,7 @@
 """Dataloaders for sampling and batching datasets."""
 
 # Stdlib imports
+from itertools import repeat
 
 # Third-party imports
 from torch.utils.data import DataLoader
@@ -29,3 +30,18 @@ def get_dsne_dataloaders(src_path, tgt_path, src_num, tgt_num, sample_ratio,
     test_dataloader = DataLoader(test_dataset, shuffle=shuffle)
 
     return train_dataloader, test_dataloader
+
+
+class InfLoader:
+    def __init__(self, data_loader):
+        self.data_loader = data_loader
+
+    def __getattr__(self, item):
+        return getattr(self.data_loader, item)
+
+    def __iter__(self):
+        def inf_loop(data_loader):
+            for loader in repeat(data_loader):
+                yield from loader
+
+        return inf_loop(self.data_loader)
