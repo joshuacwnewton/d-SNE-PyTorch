@@ -111,7 +111,7 @@ class DSNETrainer:
             best = self._train_epoch(epoch)
 
             # Print epoch summary to logger
-            log = {'epoch': epoch}
+            log = {'mode': 'train', 'epoch': epoch}
             log.update(self.metric_tracker.summary)
             for key, value in log.items():
                 self.logger.info('    {:15s}: {}'.format(str(key), value))
