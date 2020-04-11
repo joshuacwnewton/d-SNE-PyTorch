@@ -44,7 +44,7 @@ def main(args, config):
 
     if args.test:
         tester = Tester(
-               data_loader=objs["train_loader"],
+               data_loader=objs["test_loader"],
                      model=objs["model"],
             metric_tracker=objs["metric_tracker"],
                     logger=objs["logger"],
