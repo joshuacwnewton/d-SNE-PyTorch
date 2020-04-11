@@ -200,4 +200,4 @@ _build
 dsne_pytorch/data_loading/data
 
 # d-SNE logging directory
-saved
+dsne_pytorch/saved
