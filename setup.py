@@ -3,7 +3,11 @@ from setuptools import setup
 setup(
     name='dsne_pytorch',
     version='0.1.0',
-    packages=['dsne_pytorch'],
+    packages=[
+        'dsne_pytorch',
+        'dsne_pytorch/data_loading',
+        'dsne_pytorch/model'
+    ],
     entry_points={
         'console_scripts': [
             'dsne_pytorch = dsne_pytorch.__main__:main'
