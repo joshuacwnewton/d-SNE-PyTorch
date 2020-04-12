@@ -1,5 +1,9 @@
 """
-    Docstring for d-SNE PyTorch....
+    PyTorch port of the MXNet (Gluon) implementation for the 2019 CVPR paper
+    'd-SNE: Domain Adaptation using Stochastic Neighbourhood Embedding'.
+
+    Author: Joshua Newton (V00826800)
+    Email: jnewt@uvic.ca
 """
 
 # TODO: Write missing docstrings (main, agents, loggers, utils, metrics)

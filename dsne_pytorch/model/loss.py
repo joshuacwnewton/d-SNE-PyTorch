@@ -1,3 +1,6 @@
+"""Criterion functions for training networks using d-SNE."""
+
+# Third-party imports
 import torch
 from torch.nn.modules.loss import _Loss, _WeightedLoss
 from torch.nn import CrossEntropyLoss

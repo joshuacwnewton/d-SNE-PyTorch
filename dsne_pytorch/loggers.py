@@ -1,9 +1,14 @@
+"""Functions related to logging events during training and testing."""
+
+# Stdlib imports
+import importlib
 import logging
 import logging.config
 from pathlib import Path
-from dsne_pytorch.utils import read_json
-import importlib
 from datetime import datetime
+
+# Local application imports
+from dsne_pytorch.utils import read_json
 
 
 def setup_logging(save_dir, default_level=logging.INFO,

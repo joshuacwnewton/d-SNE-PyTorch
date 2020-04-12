@@ -1,11 +1,15 @@
+"""Utility functions too specific for inclusion in other modules."""
+
+# Stdlib imports
 import os
+from pathlib import Path
+import glob
 import json
 import configparser
 import argparse
-from pathlib import Path
 from collections import OrderedDict
-import glob
 
+# Third-party imports
 import numpy as np
 import torch
 

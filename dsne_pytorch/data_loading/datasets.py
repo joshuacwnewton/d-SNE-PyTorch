@@ -1,11 +1,9 @@
-# Stdlib imports
+"""Custom PyTorch datasets for training/testing using d-SNE."""
 
 # Third-party imports
 import h5py
 import numpy as np
 from torch.utils.data import Dataset
-
-# Local application imports
 
 
 class PairDataset(Dataset):

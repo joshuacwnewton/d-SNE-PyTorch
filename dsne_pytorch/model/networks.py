@@ -6,8 +6,6 @@ from collections import OrderedDict
 # Third-party imports
 from torch import nn
 
-# Local application imports
-
 
 class LeNetConvBlock(nn.Sequential):
     """Convolution block for LeNetPlus.

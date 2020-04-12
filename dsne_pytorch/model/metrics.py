@@ -1,15 +1,17 @@
-"""Functions for calculating evaluation metrics.
+"""
+    Functions for calculating evaluation metrics.
 
-As of 2020-04-08, PyTorch does not provide metrics in its core package.
-This file provides relevant metric calculations. However, other
-commonly used third-party packages include scikit-learn and Ignite.
-This is discussed further in an open PyTorch feature request, which
-suggests that metrics may become part of PyTorch Core in an upcoming
-release.
+    As of 2020-04-08, PyTorch does not provide metrics in its core
+    package. This file provides relevant metric calculations. However,
+    other commonly used third-party packages include scikit-learn and
+    Ignite. This is discussed further in an open PyTorch feature
+    request, which suggests that metrics may become part of PyTorch Core
+    in an upcoming release.
 
     https://github.com/pytorch/pytorch/issues/22439
 """
 
+# Third-party imports
 import torch
 import pandas as pd
 from numpy import inf
