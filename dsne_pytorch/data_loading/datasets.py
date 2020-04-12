@@ -149,11 +149,11 @@ class PairDataset(Dataset):
 
 
 class SingleDataset(Dataset):
-    def __init__(self, tgt_path, transform):
+    def __init__(self, data_path, transform):
         super().__init__()
         self.transform = transform
 
-        with h5py.File(tgt_path, "r") as f_t:
+        with h5py.File(data_path, "r") as f_t:
             # Read datasets from HDF5 file pointers
             self.X = f_t["X_te"][()]
             self.y = f_t["y_te"][()]
