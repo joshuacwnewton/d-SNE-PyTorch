@@ -14,7 +14,8 @@ import numpy as np
 import torch
 
 
-def fix_random_seeds(seed):
+def set_random_seeds(seed):
+    """Set random seeds to ensure reproducibility."""
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
@@ -22,9 +23,7 @@ def fix_random_seeds(seed):
 
 
 def prepare_device(n_gpu_requested, logger):
-    """
-    setup GPU device if available, move model into configured device
-    """
+    """Determine suitable device (GPU/CPU) based on availability."""
     n_gpu_available = torch.cuda.device_count()
     if n_gpu_requested > n_gpu_available:
         logger.warning(f"Warning: {n_gpu_requested} GPUs requested "
@@ -40,18 +39,21 @@ def prepare_device(n_gpu_requested, logger):
 
 
 def ensure_dir(dirname):
+    """Ensure that requested directory exists."""
     dirname = Path(dirname)
     if not dirname.is_dir():
         dirname.mkdir(parents=True, exist_ok=False)
 
 
 def read_json(fname):
+    """Read JSON-formatted file into an OrderedDict object."""
     fname = Path(fname)
     with fname.open('rt') as handle:
         return json.load(handle, object_hook=OrderedDict)
 
 
 def write_json(content, fname):
+    """Write content to file using JSON formatting."""
     fname = Path(fname)
     with fname.open('wt') as handle:
         json.dump(content, handle, indent=4, sort_keys=False)
@@ -65,7 +67,7 @@ def get_most_recent_file(src_dir, fname, recursive=True):
     if len(list_of_files) > 0:
         latest_file = max(list_of_files, key=os.path.getctime)
     else:
-        raise FileNotFoundError(f"No files called {model_name} in {save_dir}.")
+        raise FileNotFoundError(f"No files called {fname} in {src_dir}.")
 
     return latest_file
 
@@ -73,7 +75,6 @@ def get_most_recent_file(src_dir, fname, recursive=True):
 def parse_config(config_path, rem_args):
     """Parse config file, then override entries with any CLI arguments
     which match the config file keys."""
-
     # Read cfg file into ConfigParser object
     config = configparser.ConfigParser()
     config.read(config_path)
