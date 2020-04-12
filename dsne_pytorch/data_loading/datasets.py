@@ -21,7 +21,7 @@ class PairDataset(Dataset):
         Indices for pairs of source/target samples w/o matching labels.
     full_idxs: List of pairs of ints
         Indexes for pairs of source/target samples.
-    transform : List of PyTorch transforms
+    transform : Compose transform containing PyTorch transforms
         Pre-processing operations to apply to images when calling
         __getitem__.
 
@@ -62,8 +62,9 @@ class PairDataset(Dataset):
         sample_ratio : int
             Ratio between the number of intraclass pairs
             (y_src == y_tgt) to interclass pairs (y_src != y_tgt).
-        transform : list of PyTorch transforms
-            Preprocessing operations to apply to images when sampling.
+        transform : Compose transform containing PyTorch transforms
+            Pre-processing operations to apply to images when calling
+            __getitem__.
         """
         super().__init__()
         self.transform = transform
