@@ -9,6 +9,11 @@
     in an upcoming release.
 
     https://github.com/pytorch/pytorch/issues/22439
+
+    Additionally, accuracy and top_k_acc funcs taken from code contained
+    in pytorch-template repo. See this link for further information:
+
+    https://github.com/victoresque/pytorch-template
 """
 
 # Third-party imports
@@ -18,6 +23,7 @@ from numpy import inf
 
 
 def accuracy(output, target):
+    """Compute accuracy from class scores and target labels."""
     with torch.no_grad():
         if len(output.shape) == 1:
             output = torch.unsqueeze(output, dim=0)
@@ -29,6 +35,7 @@ def accuracy(output, target):
 
 
 def top_k_acc(output, target, k=3):
+    """Compute Top K accuracy from class scores and target labels."""
     with torch.no_grad():
         pred = torch.topk(output, k, dim=1)[1]
         assert pred.shape[0] == len(target)
@@ -39,6 +46,32 @@ def top_k_acc(output, target, k=3):
 
 
 class MetricTracker:
+    """Tracker of evaluation metrics for model selection.
+
+    Attributes
+    ----------
+    metrics : str or list of str
+        Names of metric functions. Must be present within this module's
+        namespace to be used.
+    best_metric : str
+        Name of metric for evaluating whether a model has improved.
+    best_mode : str
+        'min' or 'max'. Indicates what improvement is for `best_metric`.
+    best_val : float
+        The best recorded value for `best_metric`.
+    best_flag : Boolean
+        Indicator for whether the most recent update was best.
+    early_stop_count : int
+        Condition for number of non-improvement updates needed in a row
+        to stop early.
+    not_improved_count : int
+        Current number of non-improvement updates in a row.
+    _data : Pandas DataFrame
+        Table for tracking metrics.
+    writer : SummaryWriter
+        Object for passing metric history to Tensorboard.
+    """
+
     def __init__(self, metrics, best_metric, best_mode, early_stop=None,
                  writer=None):
         for metric in metrics:
@@ -50,9 +83,6 @@ class MetricTracker:
             raise ValueError("Mode for 'best' metric must be 'min' or 'max'.")
 
         self.metrics = metrics
-        self._data = pd.DataFrame(index=metrics,
-                                  columns=['total', 'counts', 'average'])
-        self.writer = writer
 
         # Attributes for checking whether a model has improved
         self.best_metric = best_metric
@@ -64,10 +94,20 @@ class MetricTracker:
         self.early_stop_count = early_stop
         self.not_improved_count = 0
 
+        self._data = pd.DataFrame(index=metrics,
+                                  columns=['total', 'counts', 'average'])
+        self.writer = writer
+
         self.reset()
 
     @property
+    def summary(self):
+        """Provide averages for all tracked metrics."""
+        return dict(self._data.average)
+
+    @property
     def stop_early(self):
+        """bool : whether condition to stop early has been met."""
         self.check_if_improved()
         if self.early_stop_count:
             stop_early = (self.not_improved_count >= self.early_stop_count)
@@ -77,6 +117,7 @@ class MetricTracker:
         return stop_early
 
     def check_if_improved(self):
+        """Whether metric avg has improved over previous best avg."""
         new_avg = self.avg(self.best_metric)
 
         if new_avg == self.best_val:
@@ -91,14 +132,12 @@ class MetricTracker:
 
         return self.best_flag
 
-    @property
-    def summary(self):
-        return dict(self._data.average)
-
     def avg(self, key):
+        """Compute average for a single metric."""
         return self._data.average[key]
 
     def update(self, y_pred, y, loss=0, n=1):
+        """Update tracked metrics and/or loss values."""
         for metric in self.metrics:
             if metric == 'loss':
                 value = loss
@@ -113,5 +152,6 @@ class MetricTracker:
                                           self._data.counts[metric])
 
     def reset(self):
+        """Reset internal metric dataframe to 0."""
         for col in self._data.columns:
             self._data[col].values[:] = 0
