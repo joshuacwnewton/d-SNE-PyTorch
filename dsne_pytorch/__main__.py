@@ -6,8 +6,6 @@
     Email: jnewt@uvic.ca
 """
 
-# TODO: Write missing docstrings (main, agents, loggers, utils, metrics)
-# TODO: Copy cfg to exec directory if no config passed ("you should edit!")
 
 # Stdlib imports
 import os
