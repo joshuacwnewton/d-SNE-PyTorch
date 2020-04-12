@@ -22,9 +22,7 @@ from dsne_pytorch.utils import read_json
 
 def setup_logging(save_dir, default_level=logging.INFO,
                   log_config='configs/logger_config.json'):
-    """
-    Setup logging configuration
-    """
+    """Load logging configuration into global module configuration."""
     save_dir, log_config = Path(save_dir), Path(log_config)
     if not save_dir.exists():
         save_dir.mkdir(parents=True)
@@ -43,19 +41,26 @@ def setup_logging(save_dir, default_level=logging.INFO,
 
 
 def get_logger(name, verbosity=2):
-    log_levels = {
-        0: logging.WARNING,
-        1: logging.INFO,
-        2: logging.DEBUG
-    }
-    msg_verbosity = 'verbosity option {} is invalid. Valid options are {}.'.format(verbosity, log_levels.keys())
-    assert verbosity in log_levels, msg_verbosity
+    """Initialize logger using specified verbosity level."""
+    log_levels = {0: logging.WARNING, 1: logging.INFO, 2: logging.DEBUG}
+    if verbosity not in log_levels:
+        raise ValueError(f'verbosity option {verbosity} is invalid. Valid'
+                         f' options are {log_levels.keys()}.')
+
     logger = logging.getLogger(name)
     logger.setLevel(log_levels[verbosity])
+
     return logger
 
 
 class TensorboardWriter:
+    """Wrapper class for SummaryWriter from several Tensorboard modules.
+
+    Taken directly from pytorch-template without modification, simply to
+    ensure other pytorch-template code is functional. I would like to
+    rewrite this given more time. For now, though, tread lightly --
+    here be dragons."""
+
     def __init__(self, log_dir, logger, enabled=True):
         self.writer = None
         self.selected_module = ""
