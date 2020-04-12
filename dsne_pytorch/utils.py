@@ -1,4 +1,13 @@
-"""Utility functions too specific for inclusion in other modules."""
+"""
+    Utility functions too specific for inclusion in other modules.
+
+    Various utility functions have been adapted from code contained
+    in pytorch-template repo. That code has been heavily modified, but
+    credit is due for providing a foundation for this code. See this
+    link for further information:
+
+    https://github.com/victoresque/pytorch-template
+"""
 
 # Stdlib imports
 import os

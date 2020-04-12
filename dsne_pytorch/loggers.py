@@ -1,4 +1,13 @@
-"""Functions related to logging events during training and testing."""
+"""
+    Functions related to logging events during training and testing.
+
+    Logging setup and writer wrapper class adapted from code contained
+    in pytorch-template repo. That code has been heavily modified, but
+    credit is due for providing a foundation for this code. See this
+    link for further information:
+
+    https://github.com/victoresque/pytorch-template
+"""
 
 # Stdlib imports
 import importlib
