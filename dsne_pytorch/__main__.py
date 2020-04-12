@@ -107,13 +107,13 @@ def init_objects(config):
              src_num=config['Datasets'].getint('src_num'),
              tgt_num=config['Datasets'].getint('tgt_num'),
         sample_ratio=config['Datasets'].getint('sample_ratio'),
-           image_dim=config['Datasets'].getint('image_dim'),
+          resize_dim=config['Datasets'].getint('resize_dim'),
           batch_size=config['Datasets'].getint('batch_size'),
              shuffle=config['Datasets'].getboolean('shuffle')
     )
 
     objs["model"] = LeNetPlus(
-           input_dim=config['Datasets'].getint('image_dim'),
+           input_dim=config['Model'].getint('input_dim'),
              classes=config['Model'].getint('classes'),
         feature_size=config['Model'].getint('feature_size'),
              dropout=config['Model'].getfloat('dropout')

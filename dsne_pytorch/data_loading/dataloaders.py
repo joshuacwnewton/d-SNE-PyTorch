@@ -13,10 +13,10 @@ from dsne_pytorch.data_loading.datasets import PairDataset, SingleDataset
 
 
 def get_dsne_dataloaders(src_path, tgt_path, src_num, tgt_num, sample_ratio,
-                         image_dim, batch_size, shuffle):
+                         resize_dim, batch_size, shuffle):
     transforms = Compose([
         ToPILImage(),
-        Resize(image_dim),
+        Resize(resize_dim),
         ToTensor(),
         Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
