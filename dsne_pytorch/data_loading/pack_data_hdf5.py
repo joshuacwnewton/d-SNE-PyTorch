@@ -4,7 +4,7 @@ Arguments
 ---------
 datasets : str or list of str
     Names of datasets to try to pack into HDF5 containers. Must be
-    present in the following list: MNIST, MNIST-M, USPS, SVHN
+    present in the following list: MNIST, MNIST-M
 """
 
 # Stdlib imports
@@ -18,8 +18,6 @@ import struct
 import h5py
 import numpy as np
 import cv2
-
-# Local application imports
 
 
 def mnist(root_path):
@@ -126,22 +124,6 @@ def mnist_m(root_path):
     return dataset
 
 
-def svhn():
-    pass
-
-
-def usps():
-    pass
-
-
-def office31():
-    pass
-
-
-def visdac_2017():
-    pass
-
-
 def pack_dataset(output_path, dataset):
     """Pack image dataset into HDF5 container.
 
@@ -183,9 +165,7 @@ def main(requested_datasets):
 
     # Mapping from str arguments to function names
     dataset_funcs = {"mt": mnist, "mnist": mnist,
-                     "mm": mnist_m, "mnistm": mnist_m, "mnist-m": mnist_m,
-                     "us": usps, "usps": usps,
-                     "sn": svhn, "svhn": svhn}
+                     "mm": mnist_m, "mnistm": mnist_m, "mnist-m": mnist_m}
 
     for dataset in requested_datasets:
         try:
