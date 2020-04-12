@@ -1,5 +1,7 @@
 import os
 import json
+import configparser
+import argparse
 from pathlib import Path
 from collections import OrderedDict
 import glob
@@ -59,3 +61,40 @@ def get_latest_model(save_dir, model_name):
         raise FileNotFoundError(f"No files called {model_name} in {save_dir}.")
 
     return latest_file
+
+
+def parse_config(config_path, rem_args):
+    """Parse config file, then override entries with any CLI arguments
+    which match the config file keys."""
+
+    # Read cfg file into ConfigParser object
+    config = configparser.ConfigParser()
+    config.read(config_path)
+
+    # Convert ConfigParser object to dict of dicts
+    config_dict = {k: dict(v) for k, v in dict(config).items()}
+
+    # Convert '[Section][Key] = Value' mapping into '[Key] = Section' mapping
+    section_dict = {}
+    for section, item_dict in config_dict.items():
+        for key, value in item_dict.items():
+            if key.lower() in section_dict:
+                raise Warning(f"Warning: Duplicate key '{value}' in config"
+                              f" file. If passed using CLI args, the values"
+                              f" for all matching keys will be overridden.")
+            section_dict[key] = section
+
+    # Create an argument for each key in the config file
+    parser = argparse.ArgumentParser()
+    for key in section_dict.keys():
+        parser.add_argument(f"--{key}")
+
+    # Parse args to check if any of the config keys were specified
+    args = parser.parse_args(rem_args)
+    for arg_name, arg_val in vars(args).items():
+        if arg_val:
+            # Override the cfg file if a matching argument was passed
+            section_name = section_dict[arg_name]
+            config[section_name][arg_name] = arg_val
+
+    return config

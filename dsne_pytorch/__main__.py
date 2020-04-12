@@ -3,16 +3,11 @@
 """
 
 # TODO: Write missing docstrings (main, agents, loggers, utils, metrics)
-# TODO: Modify config to interpolate resize_dim from input_dim
-# TODO: Switch to ExtendedInterpolation in configparsing
-# TODO: Move "save_dir" from "General" category to "Training" category
-# TODO: Add argparsing for cfg
 # TODO: Copy cfg to exec directory if no config passed ("you should edit!")
 
 # Stdlib imports
 import os
 import argparse
-import configparser
 from datetime import datetime
 from pathlib import Path
 
@@ -27,7 +22,7 @@ from dsne_pytorch.model.metrics import MetricTracker
 from dsne_pytorch import loggers
 from dsne_pytorch.agents import Trainer, Tester
 from dsne_pytorch.utils import (fix_random_seeds, prepare_device,
-                                get_latest_model)
+                                get_latest_model, parse_config)
 
 
 def main():
@@ -38,10 +33,9 @@ def main():
     parser.add_argument('config_path', help="Path to test configuration file")
     parser.add_argument('--train', action="store_true", help="Training flag")
     parser.add_argument('--test', action="store_true", help="Testing flag")
-    args = parser.parse_args()
+    args, rem_argv = parser.parse_known_args()
 
-    config = configparser.ConfigParser()
-    config.read(args.config_path)
+    config = parse_config(args.config_path, rem_argv)
 
     # Generate paths for unique experiment directories/files using current time
     output_dir = Path(config["General"]["output_dir"])
