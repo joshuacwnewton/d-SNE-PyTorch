@@ -150,7 +150,20 @@ class PairDataset(Dataset):
 
 
 class SingleDataset(Dataset):
+    """Single dataset, used here for evaluating trained network.
+
+    Attributes
+    ----------
+    transform : Compose transform containing PyTorch transforms
+        Pre-processing operations to apply to images when calling
+        __getitem__.
+    X : PyTorch Tensor (N, H, W, C)
+        Images corresponding to samples of source/target datasets.
+    y : PyTorch Tensor (N, 1)
+        Labels corresponding to samples of source/target datasets.
+    """
     def __init__(self, data_path, transform):
+        """Store data and data transforms."""
         super().__init__()
         self.transform = transform
 
@@ -160,7 +173,9 @@ class SingleDataset(Dataset):
             self.y = f_t["y_te"][()]
 
     def __len__(self):
+        """Reflect amount of available examples."""
         return len(self.X)
 
     def __getitem__(self, idx):
+        """Get single image/label pair."""
         return self.transform(self.X[idx]), self.y[idx]
