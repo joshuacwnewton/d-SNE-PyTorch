@@ -47,8 +47,7 @@ def main():
     output_dir = Path(config["General"]["output_dir"])
     test_type = config["General"]["test_name"]
     test_id = datetime.now().strftime(r'%Y-%m-%d_%H-%M-%S')
-    config["General"]["test_type_dir"] = str(output_dir / test_type)
-    config["General"]["test_dir"] = str(output_dir / test_type / test_id)
+    config["Training"]["output_dir"] = str(output_dir / test_type / test_id)
 
     fix_random_seeds(123)
     objs = init_objects(config)
@@ -68,7 +67,7 @@ def main():
                     epochs=config["Training"].getint("epochs"),
                  len_epoch=config["Training"].getint("len_epoch"),
                save_period=config["Training"].getint("save_period"),
-                  save_dir=config["General"]["test_dir"],
+                  save_dir=config["Training"]["output_dir"],
                     resume=config["Training"].get("resume")
         )
         trainer.train()
@@ -76,7 +75,7 @@ def main():
     if args.test:
         if "ckpt" not in config["Testing"]:
             config["Testing"]["ckpt"] = get_latest_model(
-                config["General"]["test_type_dir"], "model_best.pth"
+                Path(config["Training"]["output_dir"]).parent, "model_best.pth"
             )
 
         tester = Tester(
@@ -94,10 +93,10 @@ def init_objects(config):
     """Initialize objects which perform various ML duties."""
     objs = {}
 
-    loggers.setup_logging(save_dir=config['General']['test_dir'])
+    loggers.setup_logging(save_dir=config['Training']['output_dir'])
     objs["logger"] = loggers.get_logger(name=config['General']['test_name'])
     objs["writer"] = loggers.TensorboardWriter(
-        log_dir=config['General']['test_dir'],
+        log_dir=config['Training']['output_dir'],
          logger=objs["logger"]
     )
 
