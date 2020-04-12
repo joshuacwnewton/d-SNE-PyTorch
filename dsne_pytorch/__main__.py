@@ -25,7 +25,7 @@ from dsne_pytorch.model.loss import CombinedLoss
 from dsne_pytorch.model.metrics import MetricTracker
 from dsne_pytorch import loggers
 from dsne_pytorch.agents import Trainer, Tester
-from dsne_pytorch.utils import (fix_random_seeds, prepare_device,
+from dsne_pytorch.utils import (set_random_seeds, prepare_device,
                                 get_most_recent_file, parse_config)
 
 
@@ -47,7 +47,7 @@ def main():
     test_id = datetime.now().strftime(r'%Y-%m-%d_%H-%M-%S')
     config["Training"]["output_dir"] = str(output_dir / test_type / test_id)
 
-    fix_random_seeds(123)
+    set_random_seeds(123)
     objs = init_objects(config)
     device, n_gpu = prepare_device(config["General"].getint("n_gpu"),
                                    objs["logger"])
