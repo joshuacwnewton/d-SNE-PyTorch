@@ -118,7 +118,8 @@ def init_objects(config):
     objs["metric_tracker"] = MetricTracker(
             metrics=config["Metrics"]["funcs"].split(),
         best_metric=config["Metrics"]["best_metric"],
-          best_mode=config["Metrics"]["best_mode"]
+          best_mode=config["Metrics"]["best_mode"],
+             writer=objs["writer"]
     )
 
     objs["criterion"] = CombinedLoss(
