@@ -57,8 +57,11 @@ def write_json(content, fname):
         json.dump(content, handle, indent=4, sort_keys=False)
 
 
-def get_latest_model(save_dir, model_name):
-    list_of_files = glob.glob(f"{save_dir}/**/{model_name}", recursive=True)
+def get_most_recent_file(src_dir, fname, recursive=True):
+    """Find most recent file in `save_dir` with name `fname`."""
+    glob_ptn = f"{src_dir}/**/{fname}" if recursive else f"{src_dir}/{fname}"
+    list_of_files = glob.glob(glob_ptn, recursive=recursive)
+
     if len(list_of_files) > 0:
         latest_file = max(list_of_files, key=os.path.getctime)
     else:

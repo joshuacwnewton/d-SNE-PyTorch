@@ -26,7 +26,7 @@ from dsne_pytorch.model.metrics import MetricTracker
 from dsne_pytorch import loggers
 from dsne_pytorch.agents import Trainer, Tester
 from dsne_pytorch.utils import (fix_random_seeds, prepare_device,
-                                get_latest_model, parse_config)
+                                get_most_recent_file, parse_config)
 
 
 def main():
@@ -72,7 +72,7 @@ def main():
 
     if args.test:
         if "ckpt" not in config["Testing"]:
-            config["Testing"]["ckpt"] = get_latest_model(
+            config["Testing"]["ckpt"] = get_most_recent_file(
                 Path(config["Training"]["output_dir"]).parent, "model_best.pth"
             )
 
