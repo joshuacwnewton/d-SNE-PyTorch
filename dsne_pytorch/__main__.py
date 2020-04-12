@@ -33,6 +33,7 @@ def main():
     # Ensure current working directory is dsne_pytorch/
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
+    # Parse non-cfg args, then pass remaining args to be parsed as cfg params
     parser = argparse.ArgumentParser()
     parser.add_argument('config_path', help="Path to test configuration file")
     parser.add_argument('--train', action="store_true", help="Training flag")
@@ -41,14 +42,14 @@ def main():
 
     config = parse_config(args.config_path, rem_argv)
 
-    # Generate paths for unique experiment directories/files using current time
+    # Generate path for unique experiment directory using current time
     output_dir = Path(config["General"]["output_dir"])
     test_type = config["General"]["test_name"]
     test_id = datetime.now().strftime(r'%Y-%m-%d_%H-%M-%S')
     config["Training"]["output_dir"] = str(output_dir / test_type / test_id)
 
-    set_random_seeds(123)
-    objs = init_objects(config)
+    set_random_seeds(123)        # Ensure that any results are reproducible
+    objs = init_objects(config)  # Instantiate objects for various ML classes
     device, n_gpu = prepare_device(config["General"].getint("n_gpu"),
                                    objs["logger"])
 
