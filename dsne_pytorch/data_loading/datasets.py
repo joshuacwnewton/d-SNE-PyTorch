@@ -46,7 +46,7 @@ class PairDataset(Dataset):
     """
 
     def __init__(self, src_path, tgt_path, src_num=-1, tgt_num=10,
-                 sample_ratio=3,  transform=()):
+                 sample_ratio=3, transform=()):
         """Initialize dataset by sampling subsets of source/target.
 
         Parameters

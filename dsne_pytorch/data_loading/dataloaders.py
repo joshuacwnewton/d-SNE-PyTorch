@@ -26,10 +26,13 @@ def get_dsne_dataloaders(src_path, tgt_path, src_num, tgt_num, sample_ratio,
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size,
                                   shuffle=shuffle)
 
+    valid_dataset = SingleDataset(tgt_path, "tr", transform=transforms)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size)
+
     test_dataset = SingleDataset(tgt_path, "te", transform=transforms)
     test_dataloader = DataLoader(test_dataset, shuffle=shuffle)
 
-    return train_dataloader, test_dataloader
+    return train_dataloader, valid_dataloader, test_dataloader
 
 
 class InfLoader:

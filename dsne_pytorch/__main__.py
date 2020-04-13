@@ -53,19 +53,21 @@ def main():
 
     if args.train:
         trainer = Trainer(
-               data_loader=objs["train_loader"],
-                     model=objs["model"],
-                 criterion=objs["criterion"],
-                 optimizer=objs["optimizer"],
-            metric_tracker=objs["metric_tracker"],
-                    logger=objs["logger"],
-                    writer=objs["writer"],
-                    device=device,
-                    epochs=config["Training"].getint("epochs"),
-                 len_epoch=config["Training"].getint("len_epoch"),
-               save_period=config["Training"].getint("save_period"),
-                  save_dir=config["Training"]["output_dir"],
-                    resume=config["Training"].get("resume")
+             train_loader=objs["train_loader"],
+             valid_loader=objs["valid_loader"],
+                    model=objs["model"],
+                criterion=objs["criterion"],
+                optimizer=objs["optimizer"],
+            train_tracker=objs["train_tracker"],
+            valid_tracker=objs["valid_tracker"],
+                   logger=objs["logger"],
+                   writer=objs["writer"],
+                   device=device,
+                   epochs=config["Training"].getint("epochs"),
+                len_epoch=config["Training"].getint("len_epoch"),
+              save_period=config["Training"].getint("save_period"),
+                 save_dir=config["Training"]["output_dir"],
+                   resume=config["Training"].get("resume")
         )
         trainer.train()
 
@@ -78,7 +80,7 @@ def main():
         tester = Tester(
                data_loader=objs["test_loader"],
                      model=objs["model"],
-            metric_tracker=objs["metric_tracker"],
+            metric_tracker=objs["valid_tracker"],
                     logger=objs["logger"],
                     device=device,
                  ckpt_path=config["Testing"]["ckpt"]
@@ -97,7 +99,8 @@ def init_objects(config):
          logger=objs["logger"]
     )
 
-    objs["train_loader"], objs["test_loader"] = get_dsne_dataloaders(
+    objs["train_loader"], objs["valid_loader"], objs["test_loader"] \
+        = get_dsne_dataloaders(
             src_path=config['Datasets']['src_path'],
             tgt_path=config['Datasets']['tgt_path'],
              src_num=config['Datasets'].getint('src_num'),
@@ -115,11 +118,17 @@ def init_objects(config):
              dropout=config['Model'].getfloat('dropout')
     )
 
-    objs["metric_tracker"] = MetricTracker(
+    objs["train_tracker"] = MetricTracker(
             metrics=config["Metrics"]["funcs"].split(),
         best_metric=config["Metrics"]["best_metric"],
           best_mode=config["Metrics"]["best_mode"],
-             writer=objs["writer"]
+             writer=objs["writer"],
+    )
+    objs["valid_tracker"] = MetricTracker(
+            metrics=config["Metrics"]["funcs"].split(),
+        best_metric=config["Metrics"]["best_metric"],
+          best_mode=config["Metrics"]["best_mode"],
+             writer=objs["writer"],
     )
 
     objs["criterion"] = CombinedLoss(

@@ -24,12 +24,12 @@ class Trainer:
     """
     Base class for all trainers
     """
-    def __init__(self, data_loader, model, criterion, optimizer,
-                 metric_tracker, logger, writer, device, epochs,
+    def __init__(self, train_loader, valid_loader, model, criterion, optimizer,
+                 train_tracker, valid_tracker, logger, writer, device, epochs,
                  save_period, save_dir, len_epoch=None, resume=None):
         # Set logging functions
         self.logger = logger
-        self.log_step = int(np.sqrt(data_loader.batch_size))
+        self.log_step = int(np.sqrt(train_loader.batch_size))
         self.writer = writer
 
         # Set device configuration (CPU/GPU) then move model to device
@@ -37,19 +37,21 @@ class Trainer:
         self.model = model.to(self.device)
 
         # Set remaining core objects needed for training
-        self.data_loader = data_loader
+        self.train_loader = train_loader
+        self.valid_loader = valid_loader
         self.criterion = criterion
         self.optimizer = optimizer
-        self.metric_tracker = metric_tracker
+        self.train_tracker = train_tracker
+        self.valid_tracker = valid_tracker
 
         # Set config for duration of training
         self.start_epoch = 1
         self.epochs = epochs
         if len_epoch is None:
-            self.len_epoch = len(self.data_loader)
+            self.len_epoch = len(self.train_loader)
         else:
-            self.data_loader = InfLoader(data_loader)
-
+            self.train_loader = InfLoader(self.train_loader)
+            self.valid_loader = self.valid_loader
             self.len_epoch = len_epoch
 
         # Set config for saving/reloading checkpoints
@@ -73,7 +75,7 @@ class Trainer:
             'epoch': epoch,
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
-            'best_metric': self.metric_tracker.best_val,
+            'best_metric': self.valid_tracker.best_val,
         }
 
         filenames = [self.checkpoint_dir / f'checkpoint-epoch{epoch}.pth']
@@ -111,7 +113,7 @@ class Trainer:
         self.model.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.start_epoch = checkpoint['epoch'] + 1
-        self.metric_tracker.best_val = checkpoint['best_metric']
+        self.valid_tracker.best_val = checkpoint['best_metric']
 
         self.logger.info(f"Checkpoint loaded. Resuming training from "
                          f"epoch {self.start_epoch}...")
@@ -121,11 +123,15 @@ class Trainer:
         Full training logic
         """
         for epoch in range(self.start_epoch, self.epochs + 1):
-            best = self._train_epoch(epoch)
-
-            # Print epoch summary to logger
+            self._train_epoch(epoch)
             log = {'mode': 'train', 'epoch': epoch}
-            log.update(self.metric_tracker.summary)
+            log.update(self.train_tracker.summary)
+            for key, value in log.items():
+                self.logger.info('    {:15s}: {}'.format(str(key), value))
+
+            best = self._valid_epoch(epoch)
+            log = {'mode': 'valid', 'epoch': epoch}
+            log.update(self.valid_tracker.summary)
             for key, value in log.items():
                 self.logger.info('    {:15s}: {}'.format(str(key), value))
 
@@ -140,9 +146,9 @@ class Trainer:
         :return: A log that contains average loss and metric in this epoch.
         """
         self.model.train()
-        self.metric_tracker.reset()
+        self.train_tracker.reset()
 
-        for batch_idx, (X, y) in enumerate(self.data_loader):
+        for batch_idx, (X, y) in enumerate(self.train_loader):
             X = {k: v.to(self.device) for k, v in X.items()}  # Send X to GPU
             y = {k: v.to(self.device) for k, v in y.items()}  # Send y to GPU
 
@@ -160,15 +166,15 @@ class Trainer:
                 self.optimizer.step()
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
-            self.metric_tracker.update(y_pred['src'], y['src'],
-                                       loss=loss.item(),
-                                       n=self.data_loader.batch_size)
+            self.train_tracker.update(y_pred['src'], y['src'],
+                                      loss=loss.item(),
+                                      n=self.train_loader.batch_size)
 
             if batch_idx % self.log_step == 0:
                 self.logger.debug(
                     f"Train Epoch: {epoch} {self._progress(batch_idx)}"
                     f" Loss: {loss.item():.6f}"
-                    f" Accuracy: {self.metric_tracker.avg('accuracy'):.4f}")
+                    f" Accuracy: {self.train_tracker.avg('accuracy'):.4f}")
                 self.writer.add_image('source', make_grid(X['src'].cpu(),
                                                           nrow=8,
                                                           normalize=True))
@@ -178,13 +184,34 @@ class Trainer:
             if batch_idx == self.len_epoch:
                 break
 
-        return self.metric_tracker.check_if_improved()
+    def _valid_epoch(self, epoch):
+        """
+        Validate after training an epoch
+        :param epoch: Integer, current training epoch.
+        :return: A log that contains information about validation
+        """
+        self.model.eval()
+        self.valid_tracker.reset()
+
+        with torch.no_grad():
+            for X, y in self.valid_loader:
+                X = X.to(self.device)
+                y = y.to(self.device)
+
+                features, output = self.model(X)
+                self.valid_tracker.update(output, y)
+
+        # add histogram of model parameters to the tensorboard
+        for name, p in self.model.named_parameters():
+            self.writer.add_histogram(name, p, bins='auto')
+
+        return self.valid_tracker.check_if_improved()
 
     def _progress(self, batch_idx):
         base = '[{}/{} ({:.0f}%)]'
-        if hasattr(self.data_loader, 'n_samples'):
-            current = batch_idx * self.data_loader.batch_size
-            total = self.data_loader.n_samples
+        if hasattr(self.train_loader, 'n_samples'):
+            current = batch_idx * self.train_loader.batch_size
+            total = self.train_loader.n_samples
         else:
             current = batch_idx
             total = self.len_epoch
