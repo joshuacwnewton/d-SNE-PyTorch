@@ -23,10 +23,10 @@ def get_dsne_dataloaders(src_path, tgt_path, src_num, tgt_num, sample_ratio,
 
     train_dataset = PairDataset(src_path, tgt_path, src_num, tgt_num,
                                 sample_ratio, transform=transforms)
-    test_dataset = SingleDataset(tgt_path, transform=transforms)
-
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size,
                                   shuffle=shuffle)
+
+    test_dataset = SingleDataset(tgt_path, "te", transform=transforms)
     test_dataloader = DataLoader(test_dataset, shuffle=shuffle)
 
     return train_dataloader, test_dataloader

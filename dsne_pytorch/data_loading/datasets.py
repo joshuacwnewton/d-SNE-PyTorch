@@ -162,15 +162,15 @@ class SingleDataset(Dataset):
     y : PyTorch Tensor (N, 1)
         Labels corresponding to samples of source/target datasets.
     """
-    def __init__(self, data_path, transform):
+    def __init__(self, data_path, suffix, transform):
         """Store data and data transforms."""
         super().__init__()
         self.transform = transform
 
         with h5py.File(data_path, "r") as f_t:
             # Read datasets from HDF5 file pointers
-            self.X = f_t["X_te"][()]
-            self.y = f_t["y_te"][()]
+            self.X = f_t[f"X_{suffix}"][()]
+            self.y = f_t[f"y_{suffix}"][()]
 
     def __len__(self):
         """Reflect amount of available examples."""
