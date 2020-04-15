@@ -194,7 +194,6 @@ _build
 *.mp4
 *.avi
 *.zip
-*.pdf
 
 # d-SNE data directory
 dsne_pytorch/data_loading/data
