@@ -200,3 +200,6 @@ dsne_pytorch/data_loading/data
 
 # d-SNE logging directory
 dsne_pytorch/saved
+
+# Tensorboard output files
+events.out.tfevents*
