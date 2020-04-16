@@ -77,13 +77,15 @@ class Trainer:
             'optimizer': self.optimizer.state_dict(),
             'best_metric': self.valid_tracker.best_val,
         }
-
-        filenames = [self.checkpoint_dir / f'checkpoint-epoch{epoch}.pth']
+        filenames = []
+        if epoch % self.save_period == 0:
+            filenames.append(self.checkpoint_dir /
+                             f'checkpoint-epoch{epoch}.pth')
         if save_best:
             filenames.append(self.checkpoint_dir / 'model_best.pth')
 
         for fn in filenames:
-            self.logger.info(f"Saving epoch {epoch} using ckpt name '{fn}'...")
+            self.logger.info(f"Saving model (epoch {epoch}) as '{fn.name}'...")
             torch.save(state, fn)
 
     def _resume_checkpoint(self, resume_path):
