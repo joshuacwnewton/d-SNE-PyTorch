@@ -9,6 +9,8 @@ A PyTorch port of the MXNet (Gluon) implementation for `d-SNE: Domain Adaptation
 
 This port is primarily based off of the March 2020 implementation. 
 
+A final report for this project can be found at this link: [Final Report](d-SNE_Final_Report_v1.0.pdf)
+
 ## Usage
 
 At time of writing, only the MNIST -> MNIST-M (supervised, 10 target images per class) experiment has been replicated. To run this experiment, use the following command: 
@@ -16,6 +18,8 @@ At time of writing, only the MNIST -> MNIST-M (supervised, 10 target images per 
 ```
 python3 -m dsne_pytorch configs/mt-mm.cfg --train --test
 ```
+
+For this configuration to be usable, the datasets for MNIST and MNIST-M must be manually downloaded, then packed using the `data_loading/pack_data_hdf5.py` script. A list of required files, as well as links to current mirrors, can be found in the source code for that script. 
 
 ## Future work
 
