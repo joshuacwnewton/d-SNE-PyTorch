@@ -61,13 +61,14 @@ class TensorboardWriter:
     rewrite this given more time. For now, though, tread lightly --
     here be dragons."""
 
-    def __init__(self, log_dir, logger, enabled=True):
+    def __init__(self, log_dir, logger, subfolder="", enabled=True):
         self.writer = None
         self.selected_module = ""
 
         if enabled:
-            log_dir = Path(log_dir) / "tensorboard"
-            log_dir.mkdir(parents=True)
+            log_dir = Path(log_dir) / "tensorboard" / subfolder
+            if not log_dir.exists():
+                log_dir.mkdir(parents=True)
 
             # Retrieve vizualization writer.
             succeeded = False

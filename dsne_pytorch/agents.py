@@ -25,12 +25,11 @@ class Trainer:
     Base class for all trainers
     """
     def __init__(self, train_loader, valid_loader, model, criterion, optimizer,
-                 train_tracker, valid_tracker, logger, writer, device, epochs,
+                 train_tracker, valid_tracker, logger, device, epochs,
                  save_period, save_dir, len_epoch=None, resume=None):
         # Set logging functions
         self.logger = logger
         self.log_step = int(np.sqrt(train_loader.batch_size))
-        self.writer = writer
 
         # Set device configuration (CPU/GPU) then move model to device
         self.device = device
@@ -60,6 +59,8 @@ class Trainer:
         self.checkpoint_dir.mkdir()
         if resume is not None:
             self._resume_checkpoint(resume)
+
+        self.logger.info("Trainer fully initialized. Starting training now...")
 
     def _save_checkpoint(self, epoch, save_best=False):
         """
@@ -115,6 +116,8 @@ class Trainer:
         self.model.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.start_epoch = checkpoint['epoch'] + 1
+        self.train_tracker.epoch = self.start_epoch
+        self.valid_tracker.epoch = self.start_epoch
         self.valid_tracker.best_val = checkpoint['best_metric']
 
         self.logger.info(f"Checkpoint loaded. Resuming training from "
@@ -125,22 +128,17 @@ class Trainer:
         Full training logic
         """
         for epoch in range(self.start_epoch, self.epochs + 1):
-            self._train_epoch(epoch)
-            log = {'mode': 'train', 'epoch': epoch}
-            log.update(self.train_tracker.summary)
-            for key, value in log.items():
-                self.logger.info('    {:15s}: {}'.format(str(key), value))
+            self.logger.debug(f"=============== Epoch {epoch}/{self.epochs} "
+                              f"In Progress ==============")
+            self._train_epoch()
+            self.train_tracker.log_event()
 
-            best = self._valid_epoch(epoch)
-            log = {'mode': 'valid', 'epoch': epoch}
-            log.update(self.valid_tracker.summary)
-            for key, value in log.items():
-                self.logger.info('    {:15s}: {}'.format(str(key), value))
+            best = self._valid_epoch()
+            self.valid_tracker.log_event()
 
-            if epoch % self.save_period == 0:
-                self._save_checkpoint(epoch, save_best=best)
+            self._save_checkpoint(epoch, save_best=best)
 
-    def _train_epoch(self, epoch):
+    def _train_epoch(self):
         """
         Training logic for an epoch
 
@@ -148,7 +146,7 @@ class Trainer:
         :return: A log that contains average loss and metric in this epoch.
         """
         self.model.train()
-        self.train_tracker.reset()
+        self.train_tracker.reset_epoch()
 
         for batch_idx, (X, y) in enumerate(self.train_loader):
             X = {k: v.to(self.device) for k, v in X.items()}  # Send X to GPU
@@ -167,33 +165,21 @@ class Trainer:
 
                 self.optimizer.step()
 
-            self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
             self.train_tracker.update(y_pred['src'], y['src'],
                                       loss=loss.item(),
                                       n=self.train_loader.batch_size)
 
-            if batch_idx % self.log_step == 0:
-                self.logger.debug(
-                    f"Train Epoch: {epoch} {self._progress(batch_idx)}"
-                    f" Loss: {loss.item():.6f}"
-                    f" Accuracy: {self.train_tracker.avg('accuracy'):.4f}")
-                self.writer.add_image('source', make_grid(X['src'].cpu(),
-                                                          nrow=8,
-                                                          normalize=True))
-                self.writer.add_image('target', make_grid(X['tgt'].cpu(),
-                                                          nrow=8,
-                                                          normalize=True))
             if batch_idx == self.len_epoch:
                 break
 
-    def _valid_epoch(self, epoch):
+    def _valid_epoch(self):
         """
         Validate after training an epoch
         :param epoch: Integer, current training epoch.
         :return: A log that contains information about validation
         """
         self.model.eval()
-        self.valid_tracker.reset()
+        self.valid_tracker.reset_epoch()
 
         with torch.no_grad():
             for X, y in self.valid_loader:
@@ -202,10 +188,6 @@ class Trainer:
 
                 features, output = self.model(X)
                 self.valid_tracker.update(output, y)
-
-        # add histogram of model parameters to the tensorboard
-        for name, p in self.model.named_parameters():
-            self.writer.add_histogram(name, p, bins='auto')
 
         return self.valid_tracker.check_if_improved()
 

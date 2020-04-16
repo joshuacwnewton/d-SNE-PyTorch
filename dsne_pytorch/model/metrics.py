@@ -73,7 +73,7 @@ class MetricTracker:
     """
 
     def __init__(self, metrics, best_metric, best_mode, early_stop=None,
-                 writer=None):
+                 logger=None, writer=None, name=""):
         for metric in metrics:
             if not (metric in globals().keys() or metric == 'loss'):
                 raise ValueError(f"{metric} not an available metric function")
@@ -82,6 +82,7 @@ class MetricTracker:
         if best_mode.lower() not in ['min', 'max']:
             raise ValueError("Mode for 'best' metric must be 'min' or 'max'.")
 
+        self.name = f"{name: <10}"
         self.metrics = metrics
 
         # Attributes for checking whether a model has improved
@@ -91,11 +92,13 @@ class MetricTracker:
         self.best_flag = False
 
         # Attributes for early stopping
+        self.epoch = 0
         self.early_stop_count = early_stop
         self.not_improved_count = 0
 
         self._data = pd.DataFrame(index=metrics,
                                   columns=['total', 'counts', 'average'])
+        self.logger = logger
         self.writer = writer
 
         self.reset()
@@ -121,11 +124,12 @@ class MetricTracker:
         new_avg = self.avg(self.best_metric)
 
         if new_avg == self.best_val:
-            pass  # No change, do nothing
+            self.best_flag = False  # No change, do nothing
         elif ((self.best_mode == 'min' and new_avg < self.best_val) or
               (self.best_mode == 'max' and new_avg > self.best_val)):
             self.not_improved_count = 0
             self.best_flag = True
+            self.best_val = new_avg
         else:
             self.not_improved_count += 1
             self.best_flag = False
@@ -144,12 +148,32 @@ class MetricTracker:
             else:
                 value = globals()[metric](y_pred, y)
 
-            if self.writer is not None:
-                self.writer.add_scalar(metric, value)
             self._data.total[metric] += value * n
             self._data.counts[metric] += n
             self._data.average[metric] = (self._data.total[metric] /
                                           self._data.counts[metric])
+
+    def log_event(self):
+        if self.writer:
+            self.writer.set_step(self.epoch - 1)
+
+        log = {'mode': self.name, 'epoch': self.epoch}
+        log.update(self.summary)
+
+        log_str = ""
+        for key, value in log.items():
+            if self.writer and not isinstance(value, str):
+                self.writer.add_scalar(key, value)
+
+            f_value = f"{value:.4f}" if isinstance(value, float) else value
+            log_str += f"{str(key).capitalize()}: {f_value} "
+
+        if self.logger:
+            self.logger.info(log_str)
+
+    def reset_epoch(self):
+        self.epoch += 1
+        self.reset()
 
     def reset(self):
         """Reset internal metric dataframe to 0."""

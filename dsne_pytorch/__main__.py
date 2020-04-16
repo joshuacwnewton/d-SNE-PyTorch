@@ -61,7 +61,6 @@ def main():
             train_tracker=objs["train_tracker"],
             valid_tracker=objs["valid_tracker"],
                    logger=objs["logger"],
-                   writer=objs["writer"],
                    device=device,
                    epochs=config["Training"].getint("epochs"),
                 len_epoch=config["Training"].getint("len_epoch"),
@@ -94,9 +93,15 @@ def init_objects(config):
 
     loggers.setup_logging(save_dir=config['Training']['output_dir'])
     objs["logger"] = loggers.get_logger(name=config['General']['test_name'])
-    objs["writer"] = loggers.TensorboardWriter(
-        log_dir=config['Training']['output_dir'],
-         logger=objs["logger"]
+    objs["train_writer"] = loggers.TensorboardWriter(
+          log_dir=config['Training']['output_dir'],
+           logger=objs["logger"],
+        subfolder="train"
+    )
+    objs["valid_writer"] = loggers.TensorboardWriter(
+          log_dir=config['Training']['output_dir'],
+           logger=objs["logger"],
+        subfolder="valid"
     )
 
     objs["train_loader"], objs["valid_loader"], objs["test_loader"] \
@@ -122,13 +127,17 @@ def init_objects(config):
             metrics=config["Metrics"]["funcs"].split(),
         best_metric=config["Metrics"]["best_metric"],
           best_mode=config["Metrics"]["best_mode"],
-             writer=objs["writer"],
+             logger=objs["logger"],
+             writer=objs["train_writer"],
+               name="Training"
     )
     objs["valid_tracker"] = MetricTracker(
             metrics=config["Metrics"]["funcs"].split(),
         best_metric=config["Metrics"]["best_metric"],
           best_mode=config["Metrics"]["best_mode"],
-             writer=objs["writer"],
+             logger=objs["logger"],
+             writer=objs["valid_writer"],
+               name="Validation"
     )
 
     objs["criterion"] = CombinedLoss(
