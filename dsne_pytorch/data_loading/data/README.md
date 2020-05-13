@@ -25,7 +25,7 @@ Running the script will produce a file called `/data/mnist.h5` which can then be
 
 ##### MNIST-M
 
-MNIST-M is a modified version of the MNIST dataset. The modification procedures can be found within the `Unsupervised Domain Adaptation by Backpropagation` publication [(Ganin and Lempitsky, 2011)](http://sites.skoltech.ru/compvision/projects/grl/).
+MNIST-M is a modified version of the MNIST dataset. A description of the modification procedures can be found within the `Unsupervised Domain Adaptation by Backpropagation` publication [(Ganin and Lempitsky, 2011)](http://sites.skoltech.ru/compvision/projects/grl/).
 
 >In order to obtain the target domain (MNIST-M) we blend digits from the original set over patches randomly extracted from color photos from BSDS500 (Arbelaez et al., 2011).
 
