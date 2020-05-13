@@ -9,9 +9,15 @@ A PyTorch port of the MXNet (Gluon) implementation for `d-SNE: Domain Adaptation
 
 This port is primarily based off of the March 2020 implementation. 
 
+## Setup
+
+Prior to running this app, some initial setup is required. The experiments used in this port require training/testing datasets to be downloaded manually to the `/dsne_pytorch/data_loading/data` directory, then repacked into HDF5 containers. 
+
+A `README.md` file is provided in the `data` directory for further instructions on how to download and repack the required datasets.
+
 ## Usage
 
-At time of writing, only the MNIST -> MNIST-M (supervised, 10 target images per class) experiment has been replicated. To run this experiment, use the following command: 
+At time of writing, only the MNIST -> MNIST-M (supervised, 10 target images per class) experiment has been replicated. Please ensure that the necessary datasets have been prepared before continuing. To run this experiment, use the following command: 
 
 ```
 python3 -m dsne_pytorch configs/mt-mm.cfg --train --test
