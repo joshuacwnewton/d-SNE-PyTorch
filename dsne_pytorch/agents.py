@@ -14,7 +14,6 @@ from pathlib import Path
 # Third-party imports
 import numpy as np
 import torch
-from torchvision.utils import make_grid
 
 # Local application imports
 from dsne_pytorch.data_loading.dataloaders import InfLoader
