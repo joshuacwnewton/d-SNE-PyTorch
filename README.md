@@ -23,6 +23,12 @@ At time of writing, only the MNIST -> MNIST-M (supervised, 10 target images per 
 python3 -m dsne_pytorch configs/mt-mm.cfg --train --test
 ```
 
+To tweak this experiment, please review the `mt-mm.cfg` file. Each configuration parameter can also be overridden using additional CLI arguments, such as:
+
+```
+python3 -m dsne_pytorch configs/mt-mm.cfg --train --test --batch_size 100 --learning_rate 0.0001
+```
+
 ## Future work
 
 Below is a list of the remaining functionality described by the source publication that has yet to be implemented. 
