@@ -9,17 +9,25 @@ A PyTorch port of the MXNet (Gluon) implementation for `d-SNE: Domain Adaptation
 
 This port is primarily based off of the March 2020 implementation. 
 
-A final report for this project can be found at this link: [Final Report](d-SNE_Final_Report_v1.0.pdf)
+## Setup
+
+Prior to running this app, some initial setup is required. The experiments used in this port require training/testing datasets to be downloaded manually to the `/dsne_pytorch/data_loading/data` directory, then repacked into HDF5 containers. 
+
+A `README.md` file is provided in the `data` directory for further instructions on how to download and repack the required datasets.
 
 ## Usage
 
-At time of writing, only the MNIST -> MNIST-M (supervised, 10 target images per class) experiment has been replicated. To run this experiment, use the following command: 
+At time of writing, only the MNIST -> MNIST-M (supervised, 10 target images per class) experiment has been replicated. Please ensure that the necessary datasets have been prepared before continuing. To run this experiment, use the following command: 
 
 ```
 python3 -m dsne_pytorch configs/mt-mm.cfg --train --test
 ```
 
-For this configuration to be usable, the datasets for MNIST and MNIST-M must be manually downloaded, then packed using the `data_loading/pack_data_hdf5.py` script. A list of required files, as well as links to current mirrors, can be found in the source code for that script. 
+To tweak this experiment, please review the `mt-mm.cfg` file. Each configuration parameter can also be overridden using additional CLI arguments, such as:
+
+```
+python3 -m dsne_pytorch configs/mt-mm.cfg --train --test --batch_size 100 --learning_rate 0.0001
+```
 
 ## Future work
 
@@ -40,4 +48,11 @@ Lastly, it could be beneficial to further explore hyperparameter tuning. The def
 * Loss/evolution curves are flat during the initial training iterations.
 * Overfitting occurs before accuracy can reach the performance stated by the publication for the MNIST -> MNIST-M experiment. _(I achieved 81% compared to the 87% stated by the publication.)_
 
-If time permits, this repository will be updated with further progress. 
+If time permits, this repository will be updated with further progress.
+
+## Resources used in this project
+
+Below are attributions for guides, tutorials, templates, and miscellaneous repositories that were consulted when implementing this project. 
+
+* Package structure: https://chriswarrick.com/blog/2014/09/15/python-apps-the-right-way-entry_points-and-scripts/
+* PyTorch project structure: https://github.com/victoresque/pytorch-template
