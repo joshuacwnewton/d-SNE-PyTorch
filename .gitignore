@@ -196,7 +196,10 @@ _build
 *.zip
 
 # d-SNE data directory
-dsne_pytorch/data_loading/data
+dsne_pytorch/data_loading/data/mnist
+dsne_pytorch/data_loading/data/mnist.h5
+dsne_pytorch/data_loading/data/mnist_m
+dsne_pytorch/data_loading/data/mnist_m.h5
 
 # d-SNE logging directory
 dsne_pytorch/saved
