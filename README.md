@@ -36,4 +36,11 @@ Lastly, it could be beneficial to further explore hyperparameter tuning. The def
 * Loss/evolution curves are flat during the initial training iterations.
 * Overfitting occurs before accuracy can reach the performance stated by the publication for the MNIST -> MNIST-M experiment. _(I achieved 81% compared to the 87% stated by the publication.)_
 
-If time permits, this repository will be updated with further progress. 
+If time permits, this repository will be updated with further progress.
+
+## Resources used in this project
+
+Below are attributions for guides, tutorials, templates, and miscellaneous repositories that were consulted when implementing this project. 
+
+* Package structure: https://chriswarrick.com/blog/2014/09/15/python-apps-the-right-way-entry_points-and-scripts/
+* PyTorch project structure: https://github.com/victoresque/pytorch-template
