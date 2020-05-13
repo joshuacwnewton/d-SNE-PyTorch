@@ -13,7 +13,7 @@ This port is primarily based off of the March 2020 implementation.
 
 Prior to running this app, some initial setup is required. The experiments used in this port require training/testing datasets to be downloaded manually to the `/dsne_pytorch/data_loading/data` directory, then repacked into HDF5 containers. 
 
-Please refer to the `data_loading` [README.md](dsne_pytorch/data_loading/data/README.md) file for further instructions on how to download and repack the required datasets.
+Please refer to the [README.md](dsne_pytorch/data_loading/data/README.md) file in `dsne_pytorch/data_loading` for further instructions on how to download and repack the required datasets.
 
 ## Usage
 
@@ -23,7 +23,7 @@ At time of writing, only the MNIST -> MNIST-M (supervised, 10 target images per 
 python3 -m dsne_pytorch configs/mt-mm.cfg --train --test
 ```
 
-To tweak this experiment, please review the [mt-mm.cfg](/dsne_pytorch/configs/mt-mm.cfg) file for available configuration options. Each configuration parameter can also be overridden using additional CLI arguments, such as:
+To tweak this experiment, please review the [mt-mm.cfg](/dsne_pytorch/configs/mt-mm.cfg) file in `dsne_pytorch/configs` for available configuration options. Each configuration parameter can also be overridden using additional CLI arguments, such as:
 
 ```
 python3 -m dsne_pytorch configs/mt-mm.cfg --train --test --batch_size 100 --learning_rate 0.0001
