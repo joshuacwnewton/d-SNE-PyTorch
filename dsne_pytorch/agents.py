@@ -1,5 +1,5 @@
 """
-    Contains agent classes which control training/testing procedures.
+    Contains agent classes which facilitate training/testing procedures.
 
     Trainer class adapted from code contained in pytorch-template repo.
     That code has been heavily modified, but credit is due for providing
@@ -21,7 +21,8 @@ from dsne_pytorch.data_loading.dataloaders import InfLoader
 
 class Trainer:
     """
-    Base class for all trainers
+    Class that facilitates communication between ML objects (dataset,
+    model, loss, optimizer, criterion) to train neural networks.
     """
     def __init__(self, train_loader, valid_loader, model, criterion, optimizer,
                  train_tracker, valid_tracker, logger, device, epochs,
@@ -62,13 +63,7 @@ class Trainer:
         self.logger.info("Trainer fully initialized. Starting training now...")
 
     def _save_checkpoint(self, epoch, save_best=False):
-        """
-        Saving checkpoints
-
-        :param epoch: current epoch number
-        :param log: logging information of the epoch
-        :param save_best: if True, rename the saved checkpoint to 'model_best.pth'
-        """
+        """Save a PyTorch model checkpoint to a file."""
         state = {
             'arch_type': type(self.model).__name__,
             'optim_type': type(self.optimizer).__name__,
@@ -89,11 +84,7 @@ class Trainer:
             torch.save(state, fn)
 
     def _resume_checkpoint(self, resume_path):
-        """
-        Resume from saved checkpoints
-
-        :param resume_path: Checkpoint path to be resumed
-        """
+        """Resume progress from a previously saved checkpoint."""
         self.logger.info(f"Loading checkpoint: {resume_path} ...")
         checkpoint = torch.load(resume_path)
 
@@ -123,9 +114,7 @@ class Trainer:
                          f"epoch {self.start_epoch}...")
 
     def train(self):
-        """
-        Full training logic
-        """
+        """Iterate over training epochs and save best models."""
         for epoch in range(self.start_epoch, self.epochs + 1):
             self.logger.debug(f"=============== Epoch {epoch}/{self.epochs} "
                               f"In Progress ==============")
@@ -138,12 +127,7 @@ class Trainer:
             self._save_checkpoint(epoch, save_best=best)
 
     def _train_epoch(self):
-        """
-        Training logic for an epoch
-
-        :param epoch: Integer, current training epoch.
-        :return: A log that contains average loss and metric in this epoch.
-        """
+        """Train model using batches from training set."""
         self.model.train()
         self.train_tracker.reset_epoch()
 
@@ -172,11 +156,7 @@ class Trainer:
                 break
 
     def _valid_epoch(self):
-        """
-        Validate after training an epoch
-        :param epoch: Integer, current training epoch.
-        :return: A log that contains information about validation
-        """
+        """Evaluate model using batches from validation set."""
         self.model.eval()
         self.valid_tracker.reset_epoch()
 
@@ -191,6 +171,7 @@ class Trainer:
         return self.valid_tracker.check_if_improved()
 
     def _progress(self, batch_idx):
+        """Generate string representing elapsed training progress."""
         base = '[{}/{} ({:.0f}%)]'
         if hasattr(self.train_loader, 'n_samples'):
             current = batch_idx * self.train_loader.batch_size
@@ -202,6 +183,10 @@ class Trainer:
 
 
 class Tester:
+    """
+    Class that facilitates communication between ML objects (dataset,
+    model, metric tracker, logger) to evaluate neural networks.
+    """
     def __init__(self, data_loader, model, ckpt_path, metric_tracker,
                  device, logger):
         self.device = device
@@ -219,6 +204,7 @@ class Tester:
         self.logger = logger
 
     def test(self):
+        """Iterate over test dataset and record evaluation metrics."""
         with torch.no_grad():
             for X, y in self.data_loader:
                 X = X.to(self.device)

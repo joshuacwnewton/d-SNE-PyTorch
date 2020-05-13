@@ -1,5 +1,7 @@
 """
-    Utility functions too specific for inclusion in other modules.
+    Utility functions too specific for inclusion in other modules. These
+    functions should possibly be moved as per the following article:
+    https://breadcrumbscollector.tech/stop-naming-your-python-modules-utils/
 
     Various utility functions have been adapted from code contained
     in pytorch-template repo. That code has been heavily modified, but

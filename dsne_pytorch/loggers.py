@@ -2,8 +2,7 @@
     Functions related to logging events during training and testing.
 
     Logging setup and writer wrapper class adapted from code contained
-    in pytorch-template repo. That code has been heavily modified, but
-    credit is due for providing a foundation for this code. See this
+    in pytorch-template repo. This code has not been modified. See this
     link for further information:
 
     https://github.com/victoresque/pytorch-template
@@ -57,9 +56,7 @@ class TensorboardWriter:
     """Wrapper class for SummaryWriter from several Tensorboard modules.
 
     Taken directly from pytorch-template without modification, simply to
-    ensure other pytorch-template code is functional. I would like to
-    rewrite this given more time. For now, though, tread lightly --
-    here be dragons."""
+    ensure other pytorch-template code is functional."""
 
     def __init__(self, log_dir, logger, subfolder="", enabled=True):
         self.writer = None
