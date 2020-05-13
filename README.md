@@ -4,7 +4,7 @@ A PyTorch port of the MXNet (Gluon) implementation for `d-SNE: Domain Adaptation
 
 **Note:** There are two original MXNet implementations: 
 
-1. [October 2019](https://github.com/ShownX/d-SNE), a version originally created for the publication's CVPR submission.
+1. [October 2019](https://github.com/aws-samples/d-SNE), a version originally created for the publication's CVPR submission.
 2. [March 2020](https://github.com/ShownX/d-SNE), a refactored version created by author in response to GitHub issues ([1](https://github.com/aws-samples/d-SNE/issues/13), [2](https://github.com/aws-samples/d-SNE/issues/7)) which suggested that the October 2019 implementation was not functional. 
 
 This port is primarily based off of the March 2020 implementation. 
