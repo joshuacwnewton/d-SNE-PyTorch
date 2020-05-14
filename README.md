@@ -1,11 +1,11 @@
 # d-SNE PyTorch
 
-This is a PyTorch port of code for the publication `d-SNE: Domain Adaptation using Stochastic Neighbourhood Embedding` [(Xu et al., 2019)](https://arxiv.org/abs/1905.12775). Xu et al. propose d-SNE, an algorithm for training convolution neural networks. Specifically, the algorithm is designed for '[domain adaptation](https://en.wikipedia.org/wiki/Domain_adaptation)', a problem domain related to transfer learning. The algorithm was originally implemented using the MXNet (Gluon) deep learning framework.
+This is a PyTorch implementation of `d-SNE: Domain Adaptation using Stochastic Neighbourhood Embedding` [(Xu et al., 2019)](https://arxiv.org/abs/1905.12775). d-SNE is an algorithm for training convolutional neural networks. Specifically, the algorithm is designed for '[domain adaptation](https://en.wikipedia.org/wiki/Domain_adaptation)', a problem domain related to transfer learning. The authors of the publication originally implemented the algorithm using the MXNet (Gluon) deep learning framework.
 
-**Note:** There are two original MXNet implementations: 
+**Note:** There are two MXNet implementations: 
 
 1. [October 2019](https://github.com/aws-samples/d-SNE), a version originally created for the publication's CVPR submission.
-2. [March 2020](https://github.com/ShownX/d-SNE), a refactored version created by author in response to GitHub issues ([1](https://github.com/aws-samples/d-SNE/issues/13), [2](https://github.com/aws-samples/d-SNE/issues/7)) which suggested that the October 2019 implementation was not functional. 
+2. [March 2020](https://github.com/ShownX/d-SNE), a refactored version created by the primary author in response to GitHub issues ([1](https://github.com/aws-samples/d-SNE/issues/13), [2](https://github.com/aws-samples/d-SNE/issues/7)) that suggested that the October 2019 implementation was not functional. 
 
 This port is primarily based off of the March 2020 implementation. It was created by Joshua Newton to fulfill the requirements of the course project for _**CSC 586B**: Deep Learning for Computer Vision_ taught at the University of Victoria in BC, Canada.
 
