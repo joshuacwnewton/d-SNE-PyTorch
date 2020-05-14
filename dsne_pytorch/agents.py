@@ -49,8 +49,8 @@ class Trainer:
         if len_epoch is None:
             self.len_epoch = len(self.train_loader)
         else:
+            # Treat loader as repeating stream of data
             self.train_loader = InfLoader(self.train_loader)
-            self.valid_loader = self.valid_loader
             self.len_epoch = len_epoch
 
         # Set config for saving/reloading checkpoints
