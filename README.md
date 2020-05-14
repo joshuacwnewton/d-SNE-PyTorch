@@ -1,6 +1,6 @@
 # d-SNE PyTorch
 
-This is a PyTorch port of code for the publication `d-SNE: Domain Adaptation using Stochastic Neighbourhood Embedding` [(Xu et al., 2019)](https://arxiv.org/abs/1905.12775). It proposes d-SNE, an algorithm for training convolution neural networks. Specifically, the algorithm is designed for '[domain adaptation](https://en.wikipedia.org/wiki/Domain_adaptation)', a problem domain related to transfer learning. The algorithm was originally implemented using the MXNet (Gluon) deep learning framework.
+This is a PyTorch port of code for the publication `d-SNE: Domain Adaptation using Stochastic Neighbourhood Embedding` [(Xu et al., 2019)](https://arxiv.org/abs/1905.12775). Xu et al. propose d-SNE, an algorithm for training convolution neural networks. Specifically, the algorithm is designed for '[domain adaptation](https://en.wikipedia.org/wiki/Domain_adaptation)', a problem domain related to transfer learning. The algorithm was originally implemented using the MXNet (Gluon) deep learning framework.
 
 **Note:** There are two original MXNet implementations: 
 
