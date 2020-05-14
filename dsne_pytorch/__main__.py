@@ -18,7 +18,7 @@ from torch.optim import SGD
 
 # Local application imports
 from dsne_pytorch import agents, loggers, utils
-from dsne_pytorch.data_loading.dataloaders import get_dsne_dataloaders
+from dsne_pytorch.data_loading.data_classes import init_dataloaders
 from dsne_pytorch.model.networks import LeNetPlus
 from dsne_pytorch.model.loss import CombinedLoss
 from dsne_pytorch.model.metrics import MetricTracker
@@ -108,7 +108,7 @@ def init_objects(config):
     )
 
     objs["train_loader"], objs["valid_loader"], objs["test_loader"] \
-        = get_dsne_dataloaders(
+        = init_dataloaders(
             src_path=config['Datasets']['src_path'],
             tgt_path=config['Datasets']['tgt_path'],
             src_num=config['Datasets'].getint('src_num'),

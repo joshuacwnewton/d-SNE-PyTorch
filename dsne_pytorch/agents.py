@@ -16,7 +16,7 @@ import numpy as np
 import torch
 
 # Local application imports
-from dsne_pytorch.data_loading.dataloaders import InfLoader
+from dsne_pytorch.data_loading.data_classes import InfLoader
 
 
 class Trainer:
